@@ -1,0 +1,2244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MudletPackage>
+<MudletPackage version="1.001">
+	<TriggerPackage>
+		<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+			<name>Loadouts</name>
+			<script></script>
+			<triggerType>0</triggerType>
+			<conditonLineDelta>0</conditonLineDelta>
+			<mStayOpen>0</mStayOpen>
+			<mCommand></mCommand>
+			<packageName></packageName>
+			<mFgColor>#ff0000</mFgColor>
+			<mBgColor>#ffff00</mBgColor>
+			<mSoundFile></mSoundFile>
+			<colorTriggerFgColor>#000000</colorTriggerFgColor>
+			<colorTriggerBgColor>#000000</colorTriggerBgColor>
+			<regexCodeList />
+			<regexCodePropertyList />
+			<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Loadouts Keep</name>
+				<script></script>
+				<triggerType>0</triggerType>
+				<conditonLineDelta>0</conditonLineDelta>
+				<mStayOpen>0</mStayOpen>
+				<mCommand></mCommand>
+				<packageName></packageName>
+				<mFgColor>#ff0000</mFgColor>
+				<mBgColor>#ffff00</mBgColor>
+				<mSoundFile></mSoundFile>
+				<colorTriggerFgColor>#000000</colorTriggerFgColor>
+				<colorTriggerBgColor>#000000</colorTriggerBgColor>
+				<regexCodeList>
+					<string>just a placeholder</string>
+				</regexCodeList>
+				<regexCodePropertyList>
+					<integer>0</integer>
+				</regexCodePropertyList>
+			</Trigger>
+		</TriggerGroup>
+	</TriggerPackage>
+	<TimerPackage />
+	<AliasPackage>
+		<AliasGroup isActive="yes" isFolder="yes">
+			<name>Loadouts</name>
+			<script></script>
+			<command></command>
+			<packageName></packageName>
+			<regex></regex>
+			<Alias isActive="yes" isFolder="no">
+				<name>loadouts add &lt;name&gt; &lt;style&gt; &lt;rh&gt; (&lt;lh&gt;)</name>
+				<script>gw.actions.wielding.add_loadout(matches[2], matches[4], matches[6], matches[3])</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loadouts\s+add\s+(\w+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loadouts list</name>
+				<script>gw.actions.wielding.list_loadouts()</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loadouts\s+list\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loadouts clear</name>
+				<script>gw.actions.wielding.clear_loadouts()</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loadouts\s+clear\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loadouts load &lt;name&gt;</name>
+				<script>gw.actions.wielding.switch_loadout(matches[2])</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loslots set &lt;1-3&gt; &lt;name&gt;</name>
+				<script>gw.actions.wielding.set_loadout_slot(tonumber(matches[2]), matches[3])</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loslots\s+set\s+(\d)\s+(\w+)\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loslots list</name>
+				<script>gw.actions.wielding.list_loadout_slots()</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loslots\s+list\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loactions set &lt;main|fast|slow&gt; &lt;n|alt&gt; &lt;action name&gt;</name>
+				<script>gw.actions.wielding.set_action(matches[2], matches[3], matches[4])</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loactions\s+set\s+(main|fast|slow)\s+(n|alt)\s+([\w\s:]+)\s*$</regex>
+			</Alias>
+			<Alias isActive="yes" isFolder="no">
+				<name>loactions list</name>
+				<script>gw.actions.wielding.list_actions()</script>
+				<command></command>
+				<packageName></packageName>
+				<regex>^\s*loactions\s+list\s*$</regex>
+			</Alias>
+			<AliasGroup isActive="yes" isFolder="yes">
+				<name>Actions</name>
+				<script></script>
+				<command></command>
+				<packageName></packageName>
+				<regex></regex>
+				<Alias isActive="yes" isFolder="no">
+					<name>targ (set targetl)</name>
+					<script>gw.actions.targetting.set_target(matches[3])
+
+if matches[3] then
+  send('target ' .. matches[3])
+else
+  send('target clear')
+end</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*targ(\s+(\w+))?\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>mtarg (set mtarget)</name>
+					<script>gw.actions.targetting.set_mtarget(matches[3])
+
+if matches[3] then
+  send('mtarget ' .. matches[3])
+else
+  send('mtarget clear')
+end</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*mtarg(\s+(\w+))?\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>cast spell</name>
+					<script>local hand = 'r'
+local spell = matches[4]
+local empower = matches[5]
+
+if matches[3] and matches[3] ~= '' then
+  hand = matches[3]
+end
+
+function cast_spell(h, s)
+  for i = 1, #s do
+    local c = s:sub(i,i)
+    local cmd = string.format('%s%s', h, c)
+    if empower and i == #s then
+      cmd = cmd .. "+"
+    end
+    send(cmd)
+  end
+end
+
+spells = {
+  fireball = 'ssp',
+  immolate = 'sswwp',
+  firebolt = 'sp',
+  ['summon minor fire elemental'] = 'wwwc',
+  teleport = 'wcp',
+  mend = 'wws',
+  shockblade = 'wwop',
+  ['dispel magic blue'] = 'ppo',
+  ['mystic armour'] = 'pwf',
+  ['lightning stream'] = 'pfo',
+  heal = 'fc',
+  ['detect invisible'] = 'wfo',
+  forcefield = 'o',
+  firestorm = 'sssc',
+  fever = 'swp',
+  dishearten = 'wsf',
+  portal = 'wccp',
+  enchant = 'wwp',
+  fireblade = 'wwos',
+  ['dispel magic green'] = 'ppc',
+  ['dispel magic red'] = 'ppf',
+  windblast = 'pwc',
+  ['lightning bolt'] = 'po',
+  invisibility = 'wfw',
+  bless = 'wfp',
+  ['burning fury'] = 'wwf',
+  ['resist energy heat'] = 'fwfs',
+  firebolt2 = 'ps',
+  fireshield = 'ffs',
+  ['resist energy shock'] = 'fwfp',
+  
+}
+
+if table.contains(spells, spell) then
+  gw.actions.act.interpret_command(hand, spells[spell], empower)
+--  cast_spell(hand, spells[spell])
+else
+  echo(string.format("# Unknown spell: '%s', possible spells are:\n", spell))
+  for k, v in pairs(spells) do
+    echo(string.format("#\t%s - %s\n", v, k))
+  end
+end</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*cast\s+((r|l)\s+)?'([\w\s]+)'(\s+\+)?\s*$</regex>
+				</Alias>
+			</AliasGroup>
+		</AliasGroup>
+	</AliasPackage>
+	<ActionPackage />
+	<ScriptPackage>
+		<ScriptGroup isActive="yes" isFolder="yes">
+			<name>Loadouts</name>
+			<packageName></packageName>
+			<script>function initialize_gw()
+	local gw = {}
+  
+  gw.right = {}
+	gw.right.aliases = {}
+	gw.right.triggers = { }
+	gw.right.keys = {}
+  
+  gw.left = {}
+  gw.left.aliases = {}
+	gw.left.triggers = { }
+	gw.left.keys = {}
+
+	return gw
+end
+
+gw = gw or initialize_gw()</script>
+			<eventHandlerList />
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Misc</name>
+				<packageName></packageName>
+				<script>gw.misc = gw.misc or {}</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>highlight</name>
+					<packageName></packageName>
+					<script>function gw.misc.highlight(cg, txt, color)
+	color = color or "white"
+	selectCaptureGroup(cg)
+	fg(color)
+	replace(string.upper(txt))
+	gw.misc.resetFormatting()
+end
+</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>resetFormatting</name>
+					<packageName></packageName>
+					<script>function gw.misc.resetFormatting()
+	deselect()
+	resetFormat()
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>replaceCurrentLine</name>
+					<packageName></packageName>
+					<script>function gw.misc.replaceCurrentLine(txt, color)
+	color = color or "white"
+	selectString(line, 1)
+	fg(color)
+	replace(txt)
+	gw.misc.resetFormatting()
+end
+</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>freplaceCurrentLine</name>
+					<packageName></packageName>
+					<script>function gw.misc.freplaceCurrentLine(txt)
+	selectCurrentLine()
+	replace("")
+	cecho(txt .. "\n")
+	gw.misc.resetFormatting()
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>replaceCaptureGroup</name>
+					<packageName></packageName>
+					<script>function gw.misc.replaceCaptureGroup(txt, group, color)
+	group = group or 2
+	color = color or "white"
+	selectCaptureGroup(group)
+	fg(color)
+	replace(txt)
+	gw.misc.resetFormatting()
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>announce_variable</name>
+					<packageName></packageName>
+					<script>function gw.misc.announce_variable(name, value)
+  if not value then
+    value = "&lt;nil&gt;"
+  end
+  
+	echo("# " .. name .. " now set to: " .. value .. "\n")
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Actions</name>
+				<packageName></packageName>
+				<script>gw.actions = gw.actions or {}</script>
+				<eventHandlerList />
+				<ScriptGroup isActive="yes" isFolder="yes">
+					<name>Wielding</name>
+					<packageName></packageName>
+					<script>function initialize_gw_actions_wielding()
+	local wielding = {}
+
+	wielding.left_hand = nil
+	wielding.right_hand = nil
+  wielding.current_loadout = nil
+  wielding.style = nil
+  wielding.main_action = nil
+  wielding.fast_action = nil
+  wielding.slow_action = nil
+  wielding.main_action_alt = nil
+  wielding.fast_action_alt = nil
+  wielding.slow_action_alt = nil
+  wielding.sheathable = false
+  
+  wielding.loadout_slots = {}
+  
+  wielding.weapon_map = {
+    longsword = "sword",
+    broadsword = "sword",
+    bastard = "sword",
+    greatsword = "sword",
+    shortsword = "sword",
+    scimitar = "curvedsword",
+    falchion = "curvedsword",
+    sabre = "curvedsword",
+    rapier = "sword",
+    dagger = "dagger",
+    sacrificial = "dagger",
+    kris = "dagger",
+    stiletto = "dagger",
+    gauche = "dagger",
+    swordbreaker = "dagger",
+    knife = "dagger",
+    throwing = "dagger",
+    shuriken = "throwing_knife",
+    butterfly = "martial_dagger",
+    tiger = "fist_dagger",        -- defend, high strike, medium strike, low strike, whirl
+    katar = "fist_dagger",
+    katana = "samurai_sword",
+    wakizashi = "samurai_sword",
+    tanto = "dagger",
+    ninjatou = "ninjatou",
+    ninjatous = "ninjatou",
+    battleaxe = "axe",
+    greataxe = "axe",
+    hand = "throwing_axe",
+    kama = "throwing_axe",
+    throwingaxe = "throwing_axe",
+    tower = "big_shield",
+    kite = "big_shield",
+    target = "shield",            -- defend, bash, high, medium, low
+    crescent = "shield",
+    buckler = "buckler",          -- defend, bash, head, face, chest, groin
+    cudgel = "club",
+    mace = "club",
+    war = "club",
+    maul = "club",
+    shortbow = "bow",
+    composite = "bow",
+    longbow = "bow",
+    crossbow = "bow",
+    net = "net",
+    whip = "whip",                -- pummel, lash, crack, whirl
+    star = "flail",
+    halberd = "polearm",
+    naginata = "polearm",
+    spear = "spear_weapon",
+    trident = "spear_weapon",
+    quarterstaff = "staff",
+    lance = "lance",              -- raise, lower, discard
+    wand = "wand",                 -- flick, gesture, point, wave
+    magic = "magic",
+    ['2unarmed'] = 'unarmed',
+    unarmed = 'unarmed',
+  }
+
+	return wielding
+end
+
+gw.actions.wielding = gw.actions.wielding or initialize_gw_actions_wielding()</script>
+					<eventHandlerList />
+					<Script isActive="yes" isFolder="no">
+						<name>wield_lockpicks</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.wield_lockpicks()
+	send("draw lockpicks")
+  send("swap")
+	send("ra")
+	
+	-- set up buttons for using lockpicks
+
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>wield_bow</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.wield_bow()
+	send("draw bow")
+  send("swap")
+	send("ra")
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>sheath_all</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.sheath_all()
+	if gw.actions.wielding.sheathable then
+		send("sheath all")
+	end
+  
+  if gw.actions.wielding.right_hand == "magic" or gw.actions.wielding.left_hand == "magic" then
+    send('magic')
+  end
+  
+  if gw.actions.wielding.left_hand == "tower" or gw.actions.wielding.left_hand == "kite" then
+    send("lr")
+  end
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>add_loadout</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.add_loadout(name, right_hand, left_hand, style)
+  local mydb = db:get_database("char_info")
+  
+	r, err = db:add(mydb.loadout, {
+    name = name,
+    left_hand = left_hand,
+    right_hand = right_hand,
+    style = style,
+    main_action = nil,
+    fast_action = nil,
+    slow_action = nil,
+    main_action_alt = nil,
+    fast_action_alt = nil,
+    slow_action_alt = nil
+  })
+  
+  if not r then
+    echo("# error: " .. err .. "\n")
+  else
+    echo("# loadout: '" .. name .. "' added\n")
+  end
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>draw_loadout</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.draw_loadout(new_style)
+
+  if new_style ~= 'any' and new_style ~= gw.actions.wielding.style then
+    send('style ' .. new_style)
+    gw.actions.wielding.style = new_style
+  end
+  
+  local weapon = gw.actions.wielding.right_hand
+  
+  if weapon == "lockpicks" then
+    gw.actions.wielding.wield_lockpicks()
+    return
+  end
+  
+  if gw.actions.wielding.is_bow(weapon) == "bow" then
+    gw.actions.wielding.wield_bow()
+    return
+  end
+  
+  gw.actions.wielding.draw_hand(weapon)
+  
+  if gw.actions.wielding.left_hand and #gw.actions.wielding.left_hand ~= 0 then
+    if gw.actions.wielding.left_hand ==  weapon then
+      send("la")
+    else
+      gw.actions.wielding.draw_hand(gw.actions.wielding.left_hand)
+    end
+  end
+  
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>draw_hand</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.draw_hand(weapon)
+  if gw.actions.wielding.sheathable then
+    send("draw " .. weapon)
+  end
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>switch_loadout</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.switch_loadout(name)
+  if gw.actions.wielding.current_loadout == name then
+    echo("# loadout '" .. name .. "' already loaded\n")
+    return
+  end
+
+	local mydb = db:get_database("char_info")
+  
+  gw.actions.wielding.sheath_all()
+  
+  local new_style = gw.actions.wielding.set_loadout(mydb, name)
+  db:set(mydb.char_vars.current_loadout, name, db:eq(mydb.char_vars.name, gw.initialization.character))
+  gw.actions.wielding.current_loadout = name
+  
+  gw.actions.wielding.draw_loadout(new_style)
+  
+  gw.misc.announce_variable("loadout", name)
+  
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>get_loadout</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.get_loadout(mydb, name)
+  local loadout = db:fetch(mydb.loadout, db:eq(mydb.loadout.name, name))
+  
+  if #loadout == 0 then
+    return nil
+  end
+  
+  return loadout[1]
+
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set_loadout</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.set_loadout(mydb, name)
+  local loadout = gw.actions.wielding.get_loadout(mydb, name)
+  
+  if loadout == nil then
+    echo("# no loadout found called: " .. name .. "\n")
+    return
+  end
+  
+  local rh_weapon = loadout.right_hand
+  
+  if string.starts(rh_weapon, "2") then
+    rh_weapon = string.sub(rh_weapon, 2)
+  end
+  
+  gw.actions.wielding.sheathable = gw.actions.wielding.is_sheathable(rh_weapon) or gw.actions.wielding.is_sheathable(loadout.left_hand)
+  gw.actions.wielding.right_hand = loadout.right_hand
+  gw.actions.wielding.left_hand = loadout.left_hand
+  gw.actions.wielding.main_action = loadout.main_action
+  gw.actions.wielding.fast_action = loadout.fast_action
+  gw.actions.wielding.slow_action = loadout.slow_action
+  gw.actions.wielding.main_action_alt = loadout.main_action_alt
+  gw.actions.wielding.fast_action_alt = loadout.fast_action_alt
+  gw.actions.wielding.slow_action_alt = loadout.slow_action_alt
+  
+  return loadout.style
+
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>list_loadouts</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.list_loadouts()
+  local mydb = db:get_database("char_info")
+  local loadouts = db:fetch(mydb.loadout)
+  
+  if #loadouts == 0 then
+    echo("# no loads out found\n")
+    return
+  end
+  
+  for k, v in pairs(loadouts) do
+    lh = v.left_hand
+    if #lh == 0 then
+      lh = "&lt;nil&gt;"
+    end
+    
+		echo(string.format("# loadout: %s - style = %s, right hand = %s, left hand = %s\n", v.name, v.style, v.right_hand, lh))
+	end
+
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>clear_loadouts</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.clear_loadouts()
+  local mydb = db:get_database("char_info")
+  db:delete(mydb.loadout, true)
+  
+  echo("# loadouts cleared\n")
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set_loadout_slot</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.set_loadout_slot(slot, loadout)
+
+  if slot &gt; 3 or slot &lt; 1 then
+    echo("# error: attempting to set invalid slot " .. slot .. "\n")
+    return
+  end
+  
+  local mydb = db:get_database("char_info")
+  
+  local lo = gw.actions.wielding.get_loadout(mydb, loadout)
+  
+  if lo == nil then
+    echo("# no loadout found called: " .. loadout .. "\n")
+    return nil
+  end
+
+  gw.actions.wielding.loadout_slots[slot] = loadout
+  
+  local field = mydb.char_vars.loadout_slot1
+    
+  if slot == 2 then
+    field = mydb.char_vars.loadout_slot2
+  elseif slot == 3 then
+    field = mydb.char_vars.loadout_slot3
+  end
+  
+  db:set(field, loadout, db:eq(mydb.char_vars.name, gw.initialization.character))
+  
+  gw.misc.announce_variable("loadout slot " .. slot, loadout)
+
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>list_loadout_slots</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.list_loadout_slots()
+  local mydb = db:get_database("char_info")
+  local char_vars = gw.initialization.get_char_vars(mydb, gw.initialization.character)
+  
+  echo(string.format("# loadout slot 1 = %s\n", char_vars.loadout_slot1))
+  echo(string.format("# loadout slot 2 = %s\n", char_vars.loadout_slot2))
+  echo(string.format("# loadout slot 3 = %s\n", char_vars.loadout_slot3))
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set_action</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.set_action(name, type, action)
+  local mydb = db:get_database("char_info")
+  
+  local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
+  
+  if loadout == nil then
+    echo(string.format('# current loadout (%s) not found\n', gw.actions.wielding.current_loadout))
+    return
+  end
+  
+  local cmd = gw.actions.act.find_action(loadout, action)
+  
+  if cmd == nil then
+    return
+  end
+  
+  local field = mydb.loadout.main_action
+  
+  if name == 'main' and type == 'alt' then
+    field = mydb.loadout.main_action_alt
+  elseif name == 'fast' and type == 'n' then
+    field = mydb.loadout.fast_action
+  elseif name == 'fast' and type == 'alt' then
+    field = mydb.loadout.fast_action_alt
+  elseif name == 'slow' and type == 'n' then
+    field = mydb.loadout.slow_action
+  elseif name == 'slow' and type == 'alt' then
+    field = mydb.loadout.slow_action_alt
+  end
+  
+  db:set(field, action, db:eq(mydb.loadout.name, gw.actions.wielding.current_loadout))
+  
+  gw.misc.announce_variable(string.format('action %s %s', name, type), action)
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>is_sheathable</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.is_sheathable(weapon)
+	if weapon == "magic" or weapon == "unarmed" or weapon == nil or weapon == '' then
+    return false
+  else
+    return true
+  end
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>is_bow</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.is_bow(weapon)
+	if weapon == 'shortbow' or weapon == 'composite' or weapon == 'longbow' or weapon == 'crossbow' then
+    return true
+  else
+    return false
+  end
+end</script>
+						<eventHandlerList />
+					</Script>
+				</ScriptGroup>
+				<ScriptGroup isActive="yes" isFolder="yes">
+					<name>Targetting</name>
+					<packageName></packageName>
+					<script>function initialize_gw_actions_targetting()
+	local targetting = {}
+
+	targetting.target = nil
+	targetting.prev_target = nil
+  targetting.mount_target = nil
+	targetting.prev_mount_target = nil
+
+	return targetting
+end
+
+gw.actions.targetting = gw.actions.targetting or initialize_gw_actions_targetting()</script>
+					<eventHandlerList />
+					<Script isActive="yes" isFolder="no">
+						<name>set_target</name>
+						<packageName></packageName>
+						<script>function gw.actions.targetting.set_target(target) 
+  gw.actions.wielding.prev_target = gw.actions.wielding.target
+  gw.actions.wielding.target = target
+  
+  gw.misc.announce_variable("target", target)
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set_prev_target</name>
+						<packageName></packageName>
+						<script>function gw.actions.targetting.set_prev_target()
+  gw.actions.targetting.set_target(gw.actions.wielding.prev_target)
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set_mtarget</name>
+						<packageName></packageName>
+						<script>function gw.actions.targetting.set_mtarget(target) 
+  gw.actions.wielding.prev_mount_target = gw.actions.wielding.mount_target
+  gw.actions.wielding.mount_target = target
+  
+  gw.misc.announce_variable("mount_target", target)
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set_prev_mtarget</name>
+						<packageName></packageName>
+						<script>function gw.actions.targetting.set_mtarget()
+  gw.actions.targetting.set_target(gw.actions.wielding.prev_mount_target)
+end</script>
+						<eventHandlerList />
+					</Script>
+				</ScriptGroup>
+				<ScriptGroup isActive="yes" isFolder="yes">
+					<name>Act</name>
+					<packageName></packageName>
+					<script>function initialize_gw_actions_act()
+  local act = {}
+  
+  local styles = {
+    any = {
+      unarmed = {
+        ['1 3 5 2 combo'] = 'fsssssd',
+      },
+      ['2unarmed'] = {
+        ['1 4 5 combo'] = 'dfs',
+        backhand = 'wfs',
+      },
+      head = {
+        bite = 'b',
+        regenerate = 'r',
+        headbutt = 'h',
+      },
+      feet = {
+        ['leg sweep'] = 'drk',
+      },
+      sword = {
+        ['counter attack'] = 'ddd',
+      },
+      curvedsword = {
+        ['counter attack'] = 'ddd',
+      },
+      samurai_sword = {
+        ['counter attack'] = 'ddd',
+      },
+      dagger = {
+        backstab = 't',
+        ['throat slit'] = 's',
+      },
+      ninjatou = {
+        backstab = 't',
+        ['throat slit'] = 's',
+      },
+      throwing_knife = {
+        ['quick shot'] = 'at',
+        ['long aim shot'] = 'aaat',
+      },
+      fist_dagger = {
+        ['high strike'] = 'h',
+        ['medium strike'] = 'm',
+        ['low strike'] = 'l',
+      },
+      throwing_axe = {
+        ['quick shot'] = 'at',
+        ['long aim shot'] = 'aaat',
+      },
+      big_shield = {
+        defend = 'd'
+      },
+      shield = {
+        defend = 'd',
+        bash = 'b',
+        ['high defend'] = 'h',
+        ['medium defend'] = 'm',
+        ['low defend'] = 'l',
+      },
+      bow = {
+        load = 'l',
+        ['quick shot'] = 'af',
+        ['long aim shot'] = 'aaaf',
+      },
+      net = {
+        ['quick throw'] = 'wt',
+        ['long aim throw'] = 'wwwt',
+      },
+      whip = {
+        ['hard lash'] = 'wwwl',
+      },
+      flail = {
+        ['hard strike'] = 'wwwws',
+      },
+      spear = {
+        ['spear brace'] = 'ddp',
+      },
+      staff = {
+        ['staff thrust'] = 'wt',
+      },
+      lance = {
+        raise = 'r',
+        lower = 'l',
+      },
+      wand = {
+        ['energy bolt'] = 'gwp',
+        heal = 'fgp',
+        forcefield = 'gg',
+        mend = 'ffp',
+        teleport = 'wfp',
+      },
+    },
+    viper = {
+      unarmed = { ['patient viper'] = 'dd' },
+      feet = {
+        ['coiled viper'] = 'jd',
+        ['slithering snake'] = 'df',
+      },
+      sword = {
+        ['kiss of the viper'] = 'wt',
+        ['coiled viper watches prey'] = 'sd',
+        ['darting snake'] = 'dt',
+        ['striking viper'] = 'sdt',
+        ['swaying dance of the snake'] = 'ww',
+      },
+      dagger = {
+        ['kiss of the viper'] = 'wt',
+        ['coiled viper watches prey'] = 'sd',
+        ['darting snake'] = 'dt',
+        ['striking viper'] = 'sdt',
+        ['agile snake evades foe'] = 'wd',
+      },
+      martial_dagger = {
+        ['kiss of the viper'] = 'wt',
+        ['coiled viper watches prey'] = 'sd',
+        ['striking viper'] = 'sdt',
+      },
+      polearm = {
+        ['darting snake'] = 'dt',
+      },
+      spear_weapon = {
+        ['darting snake'] = 'dt',
+      },
+      staff = {
+        ['darting snake'] = 'dt',
+      },
+    },
+    crane = {
+      unarmed = { ['crane raises wing'] = 'dd' },
+      feet = { ['perching bird'] = 'jjfd' },
+      sword = {
+        ['dancing crane'] = 'wd',
+        ['pecking crane'] = 'wdt',
+      },
+    },
+    crab = {
+      unarmed = { ['crab raises claw'] = 'dd' },
+      feet = { ['crab scuttles sideways'] = 'bb' },
+      sword = { ['snapping claw of the crab'] = 'wts', },
+    },
+    mongoose = {
+      unarmed = {
+        ['claws of the mongoose'] = 'pf',
+        ['striking mongoose'] = 'pfs',
+      },
+      feet = { ['stalking mongoose'] = 'df' },
+    },
+    bull = {
+      unarmed = {
+        ['bull fist'] = 'ff',
+        ['bull punch'] = 'ffs',
+      },
+      feet = { ['rushing bull'] = 'ffff' },
+      sword = { ['charging bull'] = 'wt', },
+    },
+    mantis = {
+      feet = { ['rearing mantis'] = 'jb' },
+      sword = {
+        ['slicing claw of the mantis'] = 'wws',
+        ['praying mantis raises claw'] = 'dds',
+      },
+    },
+    dragon = {
+      unarmed = {
+        ['dragon fist'] = 'ff',
+        ['dragon punch'] = 'ffs',
+      },
+      feet = {
+        ['rearing dragon'] = 'jb',
+        ['swooping dragon'] = 'jjfd'
+      },
+    },
+    tiger = {
+      feet = {
+        ['poised cat'] = 'dj',
+        ['stalking tiger'] = 'df',
+        ['pouncing cat'] = 'jjfd',
+      },
+      curvedsword = {
+        ['cat plays with prey'] = 'ww',
+        ['cat snags prey'] = 'wws',
+        ['cat finishes prey'] = 'wwss',
+      },
+    },
+    monkey = {
+      feet = {
+        ['crouching monkey'] = 'dj',
+        ['leaping monkey'] = 'jjk'
+      },
+    },
+    swallow = {
+      feet = {
+        ['waiting swallow'] = 'dj',
+        ['perching bird'] = 'jjfd'
+      },
+    },
+    bear = {
+      feet = { ['loping bear'] = 'df' },
+    },
+    cobra = {
+      feet = {
+        ['coiled cobra'] = 'jd',
+        ['slithering snake'] = 'df'
+      },
+      sword = {
+        ['swaying dance of the snake'] = 'ww',
+        ['darting snake'] = 'dt',
+      },
+    },
+    eagle = {
+      unarmed = { ['eagle shadow fist'] = 'fs' },
+      feet = { ['perching bird'] = 'jjfd' },
+      sword = {
+        ['circling raptor'] = 'ww',
+        ['diving raptor'] = 'wws',
+      },
+    },
+    scorpion = {
+      unarmed = { ['scorpion raises claw'] = 'dd' },
+      feet = {
+        ['striking tail of the scorpion'] = 'jjk',
+        ['scorpion faces foe'] = 'bb'
+      },
+      sword = { ['snapping claw of the scorpion'] = 'wts', },
+    },
+    fox = {
+      feet = { ['cunning fox evades foe'] = 'bb' },
+    },
+    hawk = {
+      feet = { ['perching bird'] = 'jjfd' },
+      sword = {
+        ['circling raptor'] = 'ww',
+        ['diving raptor'] = 'wws',
+        ['striking hawk'] = 'wwt',
+      },
+    },
+    rhino = {
+      feet = { ['unstoppable charge of the rhino'] = 'fffk' },
+      sword = { ['horn of the rhino'] = 'dt', },
+    },
+    lion = {
+      feet = {
+        ['poised cat'] = 'dj',
+        ['stalking lion'] = 'df',
+        ['pouncing cat'] = 'jjfd',
+      },
+      curvedsword = {
+        ['cat plays with prey'] = 'ww',
+        ['cat snags prey'] = 'wws',
+        ['cat finishes prey'] = 'wwss',
+      },
+    },
+    ape = {
+      feet = { ['slouching ape'] = 'dj' },
+    },
+    asp = {
+      feet = {
+        ['coiled asp'] = 'jd',
+        ['slithering snake'] = 'df'
+      },
+      sword = {
+        ['swaying dance of the snake'] = 'ww',
+        ['darting snake'] = 'dt',
+      },
+    },
+    serpent = {
+      feet = {
+        ['coiled serpent'] = 'jd',
+        ['slithering snake'] = 'df'
+      },
+      sword = {
+        ['swaying dance of the snake'] = 'ww',
+        ['darting snake'] = 'dt',
+      },
+    },
+    hydra = {
+      feet = {
+        ['coiled hydra'] = 'jd',
+        ['slithering snake'] = 'df'
+      },
+      sword = {
+        ['swaying dance of the snake'] = 'ww',
+        ['darting snake'] = 'dt',
+      },
+    },
+    leopard = {
+      feet = {
+        ['poised cat'] = 'dj',
+        ['stalking leopard'] = 'df',
+        ['pouncing cat'] = 'jjfd',
+      },
+      curvedsword = {
+        ['cat plays with prey'] = 'ww',
+        ['cat snags prey'] = 'wws',
+        ['cat finishes prey'] = 'wwss',
+        ['savage claws of the leopard'] = 'ts',
+      },
+    },
+    wolf = {
+      feet = { ['stalking wolf'] = 'df' },
+    },
+    flea = {},
+  }
+  
+  act.styles = styles
+  
+  return act
+end
+
+gw.actions.act = gw.actions.act or initialize_gw_actions_act()</script>
+					<eventHandlerList />
+					<Script isActive="yes" isFolder="no">
+						<name>perform_action</name>
+						<packageName></packageName>
+						<script>function gw.actions.act.perform_action(field)
+  local mydb = db:get_database("char_info")
+  local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
+  
+  if loadout == nil then
+    echo(string.format('# current loadout (%s) not found\n', gw.actions.wielding.current_loadout))
+    return
+  end
+  
+  local cmd, bp, enchance = gw.actions.act.find_action(loadout, loadout[field])
+  
+  if cmd == nil then
+    return
+  end
+  
+  if bp == 'custom' then
+    send(cmd)
+    return
+  end
+  
+  gw.actions.act.interpret_command(bp, cmd, enchance)
+  
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>find_action</name>
+						<packageName></packageName>
+						<script>function gw.actions.act.find_action(loadout, action)
+  local act_table = action:split(":")
+  
+  if #act_table &lt; 2 then
+    echo('# expected action format of &lt;body part&gt;:&lt;action&gt;(:&lt;enhance&gt;?), got: "' .. action .. '"\n')
+    return nil
+  end
+  
+  local weapon = nil
+  local command = nil
+  local enhance = #act_table == 3
+  
+  if act_table[1] == 'r' then
+    weapon = loadout.right_hand
+  elseif act_table[1] == 'l' then
+    weapon = loadout.left_hand
+  elseif act_table[1] == 'f' then
+    weapon = 'feet'
+  elseif act_table[1] == 'h' then
+    weapon = 'head'
+  elseif act_table[1] == 'c' then
+    return act_table[2], 'custom'
+  else
+    echo(string.format('# got unexpected body command: "%s"\n', act_table[1]))
+    return nil
+  end
+  
+  local style_table = gw.actions.act.styles[loadout.style]
+  local any_style_table = gw.actions.act.styles['any']
+  local weapon_type = gw.actions.wielding.weapon_map[weapon]
+  
+  if weapon_type == nil or #weapon_type == 0 then
+    echo('# WARNING: no weapon_type for weapon: ' .. weapon .. '\n')
+  end
+  
+  function merge(tbl1, tbl2)
+    local result = {}
+    tbl1 = tbl1 or {}
+    tbl2 = tbl2 or {}
+    
+    for k, v in pairs(tbl2) do
+      result[k] = v
+    end
+    
+    for k, v in pairs(tbl1) do
+      result[k] = v
+    end
+    
+    return result
+  end
+  
+  local commands_table = merge(merge(style_table[weapon], style_table[weapon_type]), merge(any_style_table[weapon], any_style_table[weapon_type]))
+  
+  if commands_table == nil or table.size(commands_table) == 0 then
+    echo(string.format('# style "%s" does not have a weapon "%s", available weapons are:\n', loadout.style, weapon))
+    for k, _v in pairs(style_table) do
+      echo(string.format('#\t%s\n', k))
+    end
+    for k, _v in pairs(any_style_table) do
+      echo(string.format('#\t%s\n', k))
+    end
+    
+    return nil
+  end
+  
+  command = commands_table[act_table[2]]
+  
+  if command == nil then
+    echo(string.format('# style "%s" does not have an action "%s" for weapon "%s", available actions are:\n', loadout.style, act_table[2], weapon))
+    for k, _v in pairs(commands_table) do
+      echo(string.format('#\t%s\n', k))
+    end
+  end
+  
+  return command, act_table[1], enhance
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>interpret_command</name>
+						<packageName></packageName>
+						<script>function gw.actions.act.interpret_command(body_part, action, enhance)
+  for i = 1, #action do
+    local c = action:sub(i,i)
+    local cmd = string.format('%s%s', body_part, c)
+    if enhance and i == #action then
+      cmd = cmd .. "+"
+    end
+    send(cmd)
+  end
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>list_actions</name>
+						<packageName></packageName>
+						<script>function gw.actions.wielding.list_actions()
+  local mydb = db:get_database("char_info")
+  local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
+  
+  if loadout == nil then
+    echo(string.format('# current loadout (%s) not found\n', gw.actions.wielding.current_loadout))
+    return
+  end
+  
+  echo(string.format("# loadout = %s, style = %s\n", loadout.name, loadout.style))
+  echo(string.format("# main action = %s\n", loadout.main_action))
+  echo(string.format("# fast action = %s\n", loadout.fast_action))
+  echo(string.format("# slow action = %s\n", loadout.slow_action))
+  echo(string.format("# main alt action = %s\n", loadout.main_action_alt))
+  echo(string.format("# fast alt action = %s\n", loadout.fast_action_alt))
+  echo(string.format("# slow alt action = %s\n", loadout.slow_action_alt))
+end</script>
+						<eventHandlerList />
+					</Script>
+				</ScriptGroup>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Initialization</name>
+				<packageName></packageName>
+				<script>gw.initialization = gw.initialization or {}
+</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>initialize</name>
+					<packageName></packageName>
+					<script>function gw.initialization.initialize()
+	local mydb = gw.initialization.initialize_db()
+
+	local profile = getProfileName()
+	local tokens = string.split(profile, " ")
+	local character = tokens[#tokens]
+
+	gw.initialization.character = character
+
+	echo("\n# loading db for '" .. character .. "'\n")
+
+	local char_vars = gw.initialization.get_char_vars(mydb, character)
+
+  if #char_vars.current_loadout ~= 0 then
+    gw.actions.wielding.set_loadout(mydb, char_vars.current_loadout)
+  end
+  
+  gw.initialization.initialize_data(char_vars)
+
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>initialize db</name>
+					<packageName></packageName>
+					<script>function gw.initialization.initialize_db()
+	return db:create("char_info", {
+		char_vars = {
+			name = "",
+			current_loadout = "",
+      loadout_slot1 = "",
+      loadout_slot2 = "",
+      loadout_slot3 = "",
+			_unique = { "name" },
+			_violations = "FAIL"
+		},
+    loadout = {
+      name = "",
+			left_hand = "",
+			right_hand = "",
+      style = "",
+      main_action = "",
+      fast_action = "",
+      slow_action = "",
+      main_action_alt = "",
+      fast_action_alt = "",
+      slow_action_alt = "",
+      _unique = { "name" },
+			_violations = "FAIL"
+    }
+	})
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>get char vars</name>
+					<packageName></packageName>
+					<script>function gw.initialization.get_char_vars(mydb, character)
+
+	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+
+	if #char_vars == 0 then
+		r, err = db:add(mydb.char_vars, {
+			name = character,
+      current_loadout = nil,
+      loadout_slot1 = "main",
+      loadout_slot2 = "second",
+      loadout_slot3 = "third"
+		})
+    
+    if not r then
+      echo("# error creating char_vars: " .. err .. "\n")
+    end
+
+		echo("\n# new db created\n")
+
+		char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+	end
+
+  return char_vars[1]
+
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>initialize data</name>
+					<packageName></packageName>
+					<script>function gw.initialization.initialize_data(char_vars)
+	
+  gw.actions.wielding.current_loadout = char_vars.current_loadout
+  gw.actions.wielding.loadout_slots[1] = char_vars.loadout_slot1
+  gw.actions.wielding.loadout_slots[2] = char_vars.loadout_slot2
+  gw.actions.wielding.loadout_slots[3] = char_vars.loadout_slot3
+
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
+		</ScriptGroup>
+	</ScriptPackage>
+	<KeyPackage>
+		<KeyGroup isActive="yes" isFolder="yes">
+			<name>Loadouts</name>
+			<packageName></packageName>
+			<script></script>
+			<command></command>
+			<keyCode>-1</keyCode>
+			<keyModifier>0</keyModifier>
+			<KeyGroup isActive="yes" isFolder="yes">
+				<name>General</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>-1</keyCode>
+				<keyModifier>0</keyModifier>
+				<KeyGroup isActive="no" isFolder="yes">
+					<name>Head</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP3+Alt (hb)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>hb</command>
+						<keyCode>51</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP5+Alt (hh)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>hh</command>
+						<keyCode>53</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="no" isFolder="yes">
+					<name>Feet</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2+Ctrl (retreat)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fb</command>
+						<keyCode>50</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP3+Ctrl (defend)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fd</command>
+						<keyCode>51</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Ctrl (left)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fl</command>
+						<keyCode>52</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP5+Ctrl (kick)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fk</command>
+						<keyCode>53</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Ctrl (right)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fr</command>
+						<keyCode>54</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Ctrl (forward)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>ff</command>
+						<keyCode>56</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Ctrl (jump)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fj</command>
+						<keyCode>57</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>Score</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP. (sc)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>sc</command>
+						<keyCode>46</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP.+Shift (sc sk)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>sc sk</command>
+						<keyCode>16777223</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP.+Ctrl (af)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>af</command>
+						<keyCode>46</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>Actions</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="no" isFolder="no">
+						<name>KP/ (r?)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>r?</command>
+						<keyCode>47</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="no" isFolder="no">
+						<name>KP/+Meta (list r keys)</name>
+						<packageName></packageName>
+						<script>for _,v in ipairs(gw.right.keys) do
+  echo("# " .. v .. "\n")
+end</script>
+						<command></command>
+						<keyCode>47</keyCode>
+						<keyModifier>805306368</keyModifier>
+					</Key>
+					<Key isActive="no" isFolder="no">
+						<name>KP/+Shift (l?)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>l?</command>
+						<keyCode>47</keyCode>
+						<keyModifier>570425344</keyModifier>
+					</Key>
+					<Key isActive="no" isFolder="no">
+						<name>KP/+Shift+Meta (list l keys)</name>
+						<packageName></packageName>
+						<script>for _,v in ipairs(gw.left.keys) do
+  echo("# " .. v .. "\n")
+end</script>
+						<command></command>
+						<keyCode>47</keyCode>
+						<keyModifier>838860800</keyModifier>
+					</Key>
+					<Key isActive="no" isFolder="no">
+						<name>KP/+Ctrl (f?)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>f?</command>
+						<keyCode>47</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="no" isFolder="no">
+						<name>KP/+Alt (h?)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>h?</command>
+						<keyCode>47</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP5 (main action)</name>
+						<packageName></packageName>
+						<script>gw.actions.act.perform_action('main_action')</script>
+						<command></command>
+						<keyCode>53</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP5+Ctrl (order followers kill target)</name>
+						<packageName></packageName>
+						<script>if gw.actions.wielding.target == nil then
+  echo('# No target\n')
+else
+  send(string.format('say @pets kill %s', gw.actions.wielding.target))
+end</script>
+						<command></command>
+						<keyCode>53</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP5+Shift (label target)</name>
+						<packageName></packageName>
+						<script>echo('# Id like to set the target here but not sure how\n')</script>
+						<command></command>
+						<keyCode>16777227</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP5+Alt (k prev)</name>
+						<packageName></packageName>
+						<script>gw.actions.targetting.set_prev_target()</script>
+						<command></command>
+						<keyCode>53</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP7 (loadout slot 1)</name>
+						<packageName></packageName>
+						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[1])</script>
+						<command></command>
+						<keyCode>55</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP7+Shift (loadout slot 2)</name>
+						<packageName></packageName>
+						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[2])</script>
+						<command></command>
+						<keyCode>16777232</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP7+Ctrl (loadout slot 3)</name>
+						<packageName></packageName>
+						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[3])</script>
+						<command></command>
+						<keyCode>55</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP+ (fast action)</name>
+						<packageName></packageName>
+						<script>gw.actions.act.perform_action('fast_action')</script>
+						<command></command>
+						<keyCode>43</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP++Ctrl (fast action alt)</name>
+						<packageName></packageName>
+						<script>gw.actions.act.perform_action('fast_action_alt')</script>
+						<command></command>
+						<keyCode>43</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP- (slow action)</name>
+						<packageName></packageName>
+						<script>gw.actions.act.perform_action('slow_action')</script>
+						<command></command>
+						<keyCode>45</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP-+Ctrl (slow action alt)</name>
+						<packageName></packageName>
+						<script>gw.actions.act.perform_action('slow_action_alt')</script>
+						<command></command>
+						<keyCode>45</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="no" isFolder="yes">
+					<name>Draw</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP0 (switch loadout slot 1)</name>
+						<packageName></packageName>
+						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[1])</script>
+						<command></command>
+						<keyCode>48</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP0+Shift (switch loadout slot 2)</name>
+						<packageName></packageName>
+						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[2])</script>
+						<command></command>
+						<keyCode>16777222</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP0+Ctrl (switch loadout slot 3)</name>
+						<packageName></packageName>
+						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[3])</script>
+						<command></command>
+						<keyCode>48</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>Movement</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>33554431</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2 (walk backwards)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fb</command>
+						<keyCode>50</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP3 (duck)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fd</command>
+						<keyCode>51</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4l (walk left)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fl</command>
+						<keyCode>52</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Ctrl (walk right)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fr</command>
+						<keyCode>54</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Ctrl (jump)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>fj</command>
+						<keyCode>57</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Ctrl (forward)</name>
+						<packageName></packageName>
+						<script></script>
+						<command>ff</command>
+						<keyCode>56</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+				</KeyGroup>
+			</KeyGroup>
+			<KeyGroup isActive="no" isFolder="yes">
+				<name>Lockpicks</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>-1</keyCode>
+				<keyModifier>0</keyModifier>
+				<Key isActive="yes" isFolder="no">
+					<name>KP2 (probe)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rp</command>
+					<keyCode>50</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP4 (switch thin)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rt</command>
+					<keyCode>52</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP5 (switch broad)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rb</command>
+					<keyCode>53</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP6 (switch hooked)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rh</command>
+					<keyCode>54</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP7 (wiggle)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rw</command>
+					<keyCode>55</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP8 (lever)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rl</command>
+					<keyCode>56</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP9 (slide)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>rs</command>
+					<keyCode>57</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+			</KeyGroup>
+			<KeyGroup isActive="no" isFolder="yes">
+				<name>Weapon</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>16777220</keyCode>
+				<keyModifier>0</keyModifier>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>Left</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<KeyGroup isActive="yes" isFolder="yes">
+						<name>LBarehanded</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>-1</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="yes" isFolder="no">
+							<name>KP6+Shift (grab)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lg</command>
+							<keyCode>16777236</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP7+Shift (assist)</name>
+							<packageName></packageName>
+							<script>gw.actions.wielding.left_assist()</script>
+							<command></command>
+							<keyCode>16777232</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP8+Shift (elbow)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>le</command>
+							<keyCode>16777235</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+					<KeyGroup isActive="yes" isFolder="yes">
+						<name>General</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>-1</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="no" isFolder="no">
+							<name>KP1+Shift (remove|relax)</name>
+							<packageName></packageName>
+							<script>send("lr")
+gw.actions.wielding.set_unarmed_left()</script>
+							<command></command>
+							<keyCode>16777233</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP2+Shift (whirl|withdraw)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lw</command>
+							<keyCode>16777237</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP3+Shift (defend)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>ld</command>
+							<keyCode>16777239</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP4+Shift (aim)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>la</command>
+							<keyCode>16777234</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP4+Shift (feint|flip|fist)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lf</command>
+							<keyCode>16777234</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP5+Shift (strike|swing)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>ls</command>
+							<keyCode>16777227</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP5+Shift (bash)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lb</command>
+							<keyCode>16777227</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP5+Shift (chop)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lc</command>
+							<keyCode>16777227</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP6+Shift (thrust|throw)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lt</command>
+							<keyCode>16777236</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP8+Shift (slash)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>ls</command>
+							<keyCode>16777235</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP9+Shift (pummel|palm)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>lp</command>
+							<keyCode>16777238</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+					<KeyGroup isActive="yes" isFolder="yes">
+						<name>Magic</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>33554431</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="no" isFolder="no">
+							<name>KP4+Shift (fist)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rf</command>
+							<keyCode>16777234</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP5+Shift (clap)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rc</command>
+							<keyCode>16777227</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP6+Shift (wiggle)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rw</command>
+							<keyCode>16777236</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP7+Shift (open hand)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>ro</command>
+							<keyCode>16777232</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP8+Shift (snap)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rs</command>
+							<keyCode>16777235</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP9+Shift (point)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rp</command>
+							<keyCode>16777238</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>Right</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<KeyGroup isActive="no" isFolder="yes">
+						<name>RBarehanded</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>-1</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="yes" isFolder="no">
+							<name>KP6 (grab)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rg</command>
+							<keyCode>54</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP7 (assist)</name>
+							<packageName></packageName>
+							<script>echo("right assist not defined, what do you want to do?")</script>
+							<command></command>
+							<keyCode>55</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP8 (elbow)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>re</command>
+							<keyCode>56</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+					<KeyGroup isActive="yes" isFolder="yes">
+						<name>General</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>-1</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="yes" isFolder="no">
+							<name>KP1 (sheath)</name>
+							<packageName></packageName>
+							<script>gw.actions.wielding.sheath_all()</script>
+							<command></command>
+							<keyCode>49</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP2 (whirl|withdraw)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rw</command>
+							<keyCode>50</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP3 (defend)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rd</command>
+							<keyCode>51</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP4 (aim)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>ra</command>
+							<keyCode>52</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP4 (feint|flip|fist)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rf</command>
+							<keyCode>52</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP5 (strike|swing)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rs</command>
+							<keyCode>53</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP5 (bash)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rb</command>
+							<keyCode>53</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP5 (chop)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rc</command>
+							<keyCode>53</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP6 (thrust|throw)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rt</command>
+							<keyCode>54</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP8 (slash)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rs</command>
+							<keyCode>56</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP9 (pummel|palm)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rp</command>
+							<keyCode>57</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+					<KeyGroup isActive="yes" isFolder="yes">
+						<name>Magic</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>33554431</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="no" isFolder="no">
+							<name>KP4 (fist)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rf</command>
+							<keyCode>52</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP5 (clap)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rc</command>
+							<keyCode>53</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP6 (wiggle)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rw</command>
+							<keyCode>54</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP7 (open hand)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>ro</command>
+							<keyCode>55</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP8 (snap)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rs</command>
+							<keyCode>56</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="no" isFolder="no">
+							<name>KP9 (point)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rp</command>
+							<keyCode>57</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>Dual</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<KeyGroup isActive="no" isFolder="yes">
+						<name>Bow</name>
+						<packageName></packageName>
+						<script></script>
+						<command></command>
+						<keyCode>-1</keyCode>
+						<keyModifier>0</keyModifier>
+						<Key isActive="yes" isFolder="no">
+							<name>KP2 (load)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rl</command>
+							<keyCode>50</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP5 (fire)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rf</command>
+							<keyCode>53</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+						<Key isActive="yes" isFolder="no">
+							<name>KP9 (charge)</name>
+							<packageName></packageName>
+							<script></script>
+							<command>rc</command>
+							<keyCode>57</keyCode>
+							<keyModifier>536870912</keyModifier>
+						</Key>
+					</KeyGroup>
+				</KeyGroup>
+			</KeyGroup>
+			<KeyGroup isActive="no" isFolder="yes">
+				<name>Style</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>-1</keyCode>
+				<keyModifier>0</keyModifier>
+			</KeyGroup>
+		</KeyGroup>
+	</KeyPackage>
+	<HelpPackage>
+		<helpURL></helpURL>
+	</HelpPackage>
+</MudletPackage>
