@@ -49,22 +49,36 @@
 			<packageName></packageName>
 			<regex></regex>
 			<Alias isActive="yes" isFolder="no">
-				<name>loadouts add &lt;name&gt; &lt;style&gt; &lt;rh&gt; (&lt;lh&gt;)</name>
-				<script>gw.actions.wielding.add_loadout(matches[2], matches[4], matches[6], matches[3])</script>
+				<name>loadouts add &lt;name&gt; &lt;type&gt; &lt;order&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
+				<script>local order = tonumber(matches[4])
+if order &lt; 1 then
+  echo('# loadouts add: order must be 1+\n')
+else
+  local lo = {
+    name = matches[2],
+    wield = matches[6],
+    sheath = matches[8],
+    stance = matches[5],
+    lo_type = matches[3],
+    lo_order = order,
+  }
+
+  loadouts.loadouts.add(lo)
+end</script>
 				<command></command>
 				<packageName></packageName>
-				<regex>^\s*loadouts\s+add\s+(\w+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
+				<regex>^\s*loadouts\s+add\s+(\w+)\s+(aggressive|passive)\s+(\d+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
 				<name>loadouts list</name>
-				<script>gw.actions.wielding.list_loadouts()</script>
+				<script>loadouts.loadouts.list()</script>
 				<command></command>
 				<packageName></packageName>
 				<regex>^\s*loadouts\s+list\s*$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
 				<name>loadouts clear</name>
-				<script>gw.actions.wielding.clear_loadouts()</script>
+				<script>loadouts.loadouts.clear()</script>
 				<command></command>
 				<packageName></packageName>
 				<regex>^\s*loadouts\s+clear\s*$</regex>
@@ -75,20 +89,6 @@
 				<command></command>
 				<packageName></packageName>
 				<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loslots set &lt;1-3&gt; &lt;name&gt;</name>
-				<script>gw.actions.wielding.set_loadout_slot(tonumber(matches[2]), matches[3])</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loslots\s+set\s+(\d)\s+(\w+)\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loslots list</name>
-				<script>gw.actions.wielding.list_loadout_slots()</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loslots\s+list\s*$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
 				<name>loactions set &lt;main|fast|slow&gt; &lt;n|alt&gt; &lt;action name&gt;</name>
@@ -120,6 +120,19 @@
     'current_loadout_index',
     'container',
   }
+  
+  loadouts.loadout_fields = {
+    'name',
+    'wield',
+    'sheath',
+    'stance',
+    'main_action',
+    'fast_action',
+    'slow_action',
+    'main_action_alt',
+    'fast_action_alt',
+    'slow_action_alt',
+  }
 
 	return loadouts
 end
@@ -127,14 +140,140 @@ end
 loadouts = loadouts or initialize_loadouts()</script>
 			<eventHandlerList />
 			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Initialization</name>
+				<packageName></packageName>
+				<script>loadouts.initialization = loadouts.initialization or {}
+</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>initialize</name>
+					<packageName></packageName>
+					<script>function loadouts.initialization.initialize()
+	local mydb = loadouts.initialization.initialize_db()
+
+	local profile = getProfileName()
+	local tokens = string.split(profile, " ")
+	local character = tokens[#tokens]
+
+	echo(f"\n# loading db for '{character}'\n")
+
+	local char_vars = loadouts.initialization.get_char_vars(mydb, character)
+  
+  loadouts.util.copy_fields_to_loadouts(char_vars, loadouts.char_fields)
+  loadouts.cache.build_loadouts_cache(char_vars)
+
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>initialize db</name>
+					<packageName></packageName>
+					<script>function loadouts.initialization.initialize_db()
+	return db:create("char_info", {
+		char_vars = {
+			name = "",
+			current_loadout_type = "",
+      current_loadout_index = 0,
+      container = "",
+			_unique = { "name" },
+			_violations = "FAIL"
+		},
+    loadout = {
+      name = "",
+			wield = "",
+			sheath = "",
+      stance = "",
+      lo_type = "",
+      lo_order = 0,
+      main_action = "",
+      fast_action = "",
+      slow_action = "",
+      main_action_alt = "",
+      fast_action_alt = "",
+      slow_action_alt = "",
+      _unique = { "name" },
+			_violations = "FAIL"
+    }
+	})
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>get char vars</name>
+					<packageName></packageName>
+					<script>function loadouts.initialization.get_char_vars(mydb, character)
+
+	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+
+	if #char_vars == 0 then
+		local r, err = db:add(mydb.char_vars, {
+			name = character,
+      current_loadout_type = nil,
+      current_loadout_index = 0,
+      container = nil,
+		})
+    
+    if not r then
+      echo(f'# error creating char_vars: {err}\n')
+    end
+
+		echo('\n# new db created\n')
+
+		char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+	end
+
+  return char_vars[1]
+
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>loadouts_on_sys_connection_event</name>
+					<packageName></packageName>
+					<script>function loadouts_on_sys_connection_event(...)
+  if loadouts and loadouts.initialization and loadouts.initialization.initialize then
+    loadouts.initialization.initialize()
+  else
+    echo('\n\n# Unable to initialize system!\n\n')
+  end
+end</script>
+					<eventHandlerList>
+						<string>sysConnectionEvent</string>
+					</eventHandlerList>
+				</Script>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Char</name>
+				<packageName></packageName>
+				<script>loadouts.char = loadouts.char or {}</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>set_current_loadout_type</name>
+					<packageName></packageName>
+					<script>function loadouts.char.set_current_loadout_type(mydb, lo_type)
+  loadouts.current_loadout_type = lo_type
+  db:set(mydb.char_vars.current_loadout_type, lo_type, db:eq(mydb.char_vars.name, loadouts.name))
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>set_current_loadout_index</name>
+					<packageName></packageName>
+					<script>function loadouts.char.set_current_loadout_index(mydb, lo_order)
+  loadouts.current_loadout_index = lo_order
+  db:set(mydb.char_vars.current_loadout_index, lo_order, db:eq(mydb.char_vars.name, loadouts.name))
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Cache</name>
 				<packageName></packageName>
 				<script>function initialize_loadouts_cache()
 	local cache = {}
   
   cache.loadouts = {}
-  cache.loadout_fields = {
-    'name',
+  cache.loadout_fields_without_name = {
     'wield',
     'sheath',
     'stance',
@@ -167,24 +306,95 @@ loadouts.cache = loadouts.cache or initialize_loadouts_cache()</script>
   
   for k, v in pairs(los) do
     local stance = loadouts.cache.loadouts[v.lo_type] or {}
-    stance[v.lo_order] = loadouts.cache.copy_loadout_table(v)
+    stance[v.lo_order] = loadouts.util.copy_table(v, loadouts.loadout_fields)
     
     loadouts.cache.loadouts[v.lo_type] = stance
+    echo(f'# Building cache for loadout: "{v.name}"\n')
 	end
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>copy_loadout_table</name>
+					<name>cache_current_loadout</name>
 					<packageName></packageName>
-					<script>function loadouts.cache.copy_loadout_table(lot)
-  result = {}
+					<script>function loadouts.cache.cache_current_loadout()
+  if table.contains(loadouts.cache.loadouts, loadouts.current_loadout_type) then
+    local lostbl = loadouts.cache.loadouts[loadouts.current_loadout_type]
+    
+    if loadouts.current_loadout_index == 0 or not table.contains(lostbl, loadouts.current_loadout_index) then
+      echo(f'# Unable to prepare "{loadouts.current_loadout_type}" loadout at index {loadouts.current_loadout_index}, not found\n')
+    else
+      local lo = lostbl[loadouts.current_loadout_index]
+      loadouts.loadout_name = lo.name
+      loadouts.util.copy_fields_to_loadouts(lo, loadouts.cache.loadout_fields_without_name)
+    end
+  else
+    echo(f'# Unable to prepare loadout "{loadouts.current_loadout_type}", not found\n')
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Loadouts</name>
+				<packageName></packageName>
+				<script>loadouts.loadouts = loadouts.loadouts or {}</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>list</name>
+					<packageName></packageName>
+					<script>function loadouts.loadouts.list()
+  local mydb = db:get_database("char_info")
+  local lostbl = db:fetch(mydb.loadout)
   
-  for _, field in ipairs(loadouts.cache.loadout_fields) do
-    result[field] = lot[field]
+  if #lostbl == 0 then
+    echo("# no loads out found\n")
+    return
   end
   
-  return result
+  for k, v in pairs(lostbl) do
+    echo(f'# loadout: {v.name} ({v.lo_type}:{v.lo_order}) - ')
+    loadouts.util.echo_table(v, {'stance', 'wield', 'sheath'})
+    echo('\n')
+	end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>add</name>
+					<packageName></packageName>
+					<script>function loadouts.loadouts.add(record)
+  local mydb = db:get_database("char_info")
+  
+	local r, err = db:add(mydb.loadout, record)
+  
+  if not r then
+    echo(f"# error: {err}\n")
+  else
+    echo(f"# loadout: '{record.name}' added\n")
+  end
+  
+  if loadouts.current_loadout_type == nil or loadouts.current_loadout_type == '' then
+    loadouts.char.set_current_loadout_type(mydb, record.lo_type)
+  end
+  
+  if loadouts.current_loadout_index == 0 then
+    loadouts.char.set_current_loadout_index(mydb, record.lo_order)
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>clear</name>
+					<packageName></packageName>
+					<script>function loadouts.loadouts.clear()
+  local mydb = db:get_database("char_info")
+  db:delete(mydb.loadout, true)
+  
+  loadouts.char.set_current_loadout_type(mydb, '')
+  loadouts.char.set_current_loadout_index(mydb, 0)
+  
+  echo("# loadouts cleared\n")
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -359,16 +569,16 @@ loadouts.actions.wielding = loadouts.actions.wielding or initialize_loadouts_act
 					<Script isActive="yes" isFolder="no">
 						<name>sheath_all</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.sheath_all()
-	if gw.actions.wielding.sheathable then
+						<script>function loadouts.actions.wielding.sheath_all()
+	if loadouts.actions.wielding.sheathable then
 		send("sheath all")
 	end
   
-  if gw.actions.wielding.right_hand == "magic" or gw.actions.wielding.left_hand == "magic" then
+  if loadouts.actions.wielding.right_hand == "magic" or loadouts.actions.wielding.left_hand == "magic" then
     send('magic')
   end
   
-  if gw.actions.wielding.left_hand == "tower" or gw.actions.wielding.left_hand == "kite" then
+  if loadouts.actions.wielding.left_hand == "tower" or loadouts.actions.wielding.left_hand == "kite" then
     send("lr")
   end
 end</script>
@@ -380,7 +590,7 @@ end</script>
 						<script>function loadouts.actions.wielding.add_loadout(name, right_hand, left_hand, style)
   local mydb = db:get_database("char_info")
   
-	r, err = db:add(mydb.loadout, {
+	local r, err = db:add(mydb.loadout, {
     name = name,
     left_hand = left_hand,
     right_hand = right_hand,
@@ -439,23 +649,23 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>switch_loadout</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.switch_loadout(name)
-  if gw.actions.wielding.current_loadout == name then
+						<script>function loadouts.actions.wielding.switch_loadout(name)
+  if loadouts.actions.wielding.current_loadout == name then
     echo("# loadout '" .. name .. "' already loaded\n")
     return
   end
 
 	local mydb = db:get_database("char_info")
   
-  gw.actions.wielding.sheath_all()
+  loadouts.actions.wielding.sheath_all()
   
-  local new_style = gw.actions.wielding.set_loadout(mydb, name)
-  db:set(mydb.char_vars.current_loadout, name, db:eq(mydb.char_vars.name, gw.initialization.character))
-  gw.actions.wielding.current_loadout = name
+  local new_style = loadouts.actions.wielding.set_loadout(mydb, name)
+  db:set(mydb.char_vars.current_loadout, name, db:eq(mydb.char_vars.name, loadouts.initialization.character))
+  loadouts.actions.wielding.current_loadout = name
   
-  gw.actions.wielding.draw_loadout(new_style)
+  loadouts.actions.wielding.draw_loadout(new_style)
   
-  gw.misc.announce_variable("loadout", name)
+  loadouts.misc.announce_variable("loadout", name)
   
 end</script>
 						<eventHandlerList />
@@ -463,7 +673,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>get_loadout</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.get_loadout(mydb, name)
+						<script>function loadouts.actions.wielding.get_loadout(mydb, name)
   local loadout = db:fetch(mydb.loadout, db:eq(mydb.loadout.name, name))
   
   if #loadout == 0 then
@@ -478,8 +688,8 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>set_loadout</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.set_loadout(mydb, name)
-  local loadout = gw.actions.wielding.get_loadout(mydb, name)
+						<script>function loadouts.actions.wielding.set_loadout(mydb, name)
+  local loadout = loadouts.actions.wielding.get_loadout(mydb, name)
   
   if loadout == nil then
     echo("# no loadout found called: " .. name .. "\n")
@@ -510,7 +720,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>list_loadouts</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.list_loadouts()
+						<script>function loadouts.actions.wielding.list_loadouts()
   local mydb = db:get_database("char_info")
   local loadouts = db:fetch(mydb.loadout)
   
@@ -534,7 +744,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>clear_loadouts</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.clear_loadouts()
+						<script>function loadouts.actions.wielding.clear_loadouts()
   local mydb = db:get_database("char_info")
   db:delete(mydb.loadout, true)
   
@@ -545,7 +755,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>set_loadout_slot</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.set_loadout_slot(slot, loadout)
+						<script>function loadouts.actions.wielding.set_loadout_slot(slot, loadout)
 
   if slot &gt; 3 or slot &lt; 1 then
     echo("# error: attempting to set invalid slot " .. slot .. "\n")
@@ -581,7 +791,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>list_loadout_slots</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.list_loadout_slots()
+						<script>function loadouts.actions.wielding.list_loadout_slots()
   local mydb = db:get_database("char_info")
   local char_vars = gw.initialization.get_char_vars(mydb, gw.initialization.character)
   
@@ -594,7 +804,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>set_action</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.set_action(name, type, action)
+						<script>function loadouts.actions.wielding.set_action(name, type, action)
   local mydb = db:get_database("char_info")
   
   local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
@@ -633,7 +843,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>is_sheathable</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.is_sheathable(weapon)
+						<script>function loadouts.actions.wielding.is_sheathable(weapon)
 	if weapon == "magic" or weapon == "unarmed" or weapon == nil or weapon == '' then
     return false
   else
@@ -645,7 +855,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>is_bow</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.is_bow(weapon)
+						<script>function loadouts.actions.wielding.is_bow(weapon)
 	if weapon == 'shortbow' or weapon == 'composite' or weapon == 'longbow' or weapon == 'crossbow' then
     return true
   else
@@ -1119,116 +1329,51 @@ end</script>
 				</ScriptGroup>
 			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
-				<name>Initialization</name>
+				<name>Util</name>
 				<packageName></packageName>
-				<script>loadouts.initialization = loadouts.initialization or {}
-</script>
+				<script>loadouts.util = loadouts.util or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
-					<name>initialize</name>
+					<name>copy_table</name>
 					<packageName></packageName>
-					<script>function loadouts.initialization.initialize()
-	local mydb = loadouts.initialization.initialize_db()
-
-	local profile = getProfileName()
-	local tokens = string.split(profile, " ")
-	local character = tokens[#tokens]
-
-	loadouts.initialization.character = character
-
-	echo("\n# loading db for '" .. character .. "'\n")
-
-	local char_vars = loadouts.initialization.get_char_vars(mydb, character)
+					<script>function loadouts.util.copy_table(tbl, fields)
+  result = {}
   
-  loadouts.initialization.initialize_loadouts_vars(char_vars)
-  loadouts.cache.build_loadouts_cache(char_vars)
-
+  for _, field in ipairs(fields) do
+    result[field] = tbl[field]
+  end
+  
+  return result
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>initialize db</name>
+					<name>copy_fields_to_loadouts</name>
 					<packageName></packageName>
-					<script>function loadouts.initialization.initialize_db()
-	return db:create("char_info", {
-		char_vars = {
-			name = "",
-			current_loadout_type = "",
-      current_loadout_index = 0,
-      container = "",
-			_unique = { "name" },
-			_violations = "FAIL"
-		},
-    loadout = {
-      name = "",
-			wield = "",
-			sheath = "",
-      stance = "",
-      lo_type = "",
-      lo_order = 0,
-      main_action = "",
-      fast_action = "",
-      slow_action = "",
-      main_action_alt = "",
-      fast_action_alt = "",
-      slow_action_alt = "",
-      _unique = { "name" },
-			_violations = "FAIL"
-    }
-	})
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>get char vars</name>
-					<packageName></packageName>
-					<script>function loadouts.initialization.get_char_vars(mydb, character)
-
-	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
-
-	if #char_vars == 0 then
-		local r, err = db:add(mydb.char_vars, {
-			name = character,
-      current_loadout_type = nil,
-      current_loadout_index = 0,
-      container = nil,
-		})
-    
-    if not r then
-      echo(f'# error creating char_vars: {err}\n')
-    end
-
-		echo('\n# new db created\n')
-
-		char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
-	end
-
-  return char_vars[1]
-
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>initialize_loadouts_vars</name>
-					<packageName></packageName>
-					<script>function loadouts.initialization.initialize_loadouts_vars(char_vars)
-  for _, field in ipairs(loadouts.char_fields) do
-    loadouts[field] = char_vars[field]
-  end  
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>loadouts_on_sys_connection_event</name>
-					<packageName></packageName>
-					<script>function loadouts_on_sys_connection_event(...)
-  if loadouts and loadouts.initialization and loadouts.initialization.initialize then
-    loadouts.initialization.initialize()
+					<script>function loadouts.util.copy_fields_to_loadouts(tbl, fields)
+  for _, field in ipairs(fields) do
+    loadouts[field] = tbl[field]
   end
 end</script>
-					<eventHandlerList>
-						<string>sysConnectionEvent</string>
-					</eventHandlerList>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>echo_table</name>
+					<packageName></packageName>
+					<script>function loadouts.util.echo_table(tbl, fields)
+  local first_char = ''
+  for _, field in ipairs(fields) do
+    local v = tbl[field]
+    if v == nil or v == '' then
+      v = 'nil'
+    else
+      v = f'"{v}"'
+    end
+    echo(f'{first_char}{field} = {v}')
+    first_char = ', '
+  end
+end</script>
+					<eventHandlerList />
 				</Script>
 			</ScriptGroup>
 		</ScriptGroup>
