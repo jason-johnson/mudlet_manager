@@ -1,1 +1,1 @@
-mpackage = "Loadouts"
+mpackage = "Manager"

@@ -3,7 +3,7 @@
 <MudletPackage version="1.001">
 	<TriggerPackage>
 		<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
-			<name>Loadouts</name>
+			<name>Manager</name>
 			<script></script>
 			<triggerType>0</triggerType>
 			<conditonLineDelta>0</conditonLineDelta>
@@ -18,7 +18,7 @@
 			<regexCodeList />
 			<regexCodePropertyList />
 			<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
-				<name>Loadouts Keep</name>
+				<name>Manager Keep</name>
 				<script>-- sysConnectionEvent
 -- sysLoadEvent</script>
 				<triggerType>0</triggerType>
@@ -43,7 +43,7 @@
 	<TimerPackage />
 	<AliasPackage>
 		<AliasGroup isActive="yes" isFolder="yes">
-			<name>Loadouts</name>
+			<name>Manager</name>
 			<script></script>
 			<command></command>
 			<packageName></packageName>
@@ -63,7 +63,7 @@ else
     lo_order = order,
   }
 
-  loadouts.loadouts.add(lo)
+  manager.loadouts.add(lo)
 end</script>
 				<command></command>
 				<packageName></packageName>
@@ -71,14 +71,14 @@ end</script>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
 				<name>loadouts list</name>
-				<script>loadouts.loadouts.list()</script>
+				<script>manager.loadouts.list()</script>
 				<command></command>
 				<packageName></packageName>
 				<regex>^\s*loadouts\s+list\s*$</regex>
 			</Alias>
 			<Alias isActive="yes" isFolder="no">
 				<name>loadouts clear</name>
-				<script>loadouts.loadouts.clear()</script>
+				<script>manager.loadouts.clear()</script>
 				<command></command>
 				<packageName></packageName>
 				<regex>^\s*loadouts\s+clear\s*$</regex>
@@ -109,19 +109,19 @@ end</script>
 	<ActionPackage />
 	<ScriptPackage>
 		<ScriptGroup isActive="yes" isFolder="yes">
-			<name>Loadouts</name>
+			<name>Manager</name>
 			<packageName></packageName>
 			<script>function initialize_loadouts()
 	local loadouts = {}
   
-  loadouts.char_fields = {
+  manager.char_fields = {
     'name',
     'current_loadout_type',
     'current_loadout_index',
     'container',
   }
   
-  loadouts.loadout_fields = {
+  manager.loadout_fields = {
     'name',
     'wield',
     'sheath',
@@ -142,14 +142,14 @@ loadouts = loadouts or initialize_loadouts()</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Initialization</name>
 				<packageName></packageName>
-				<script>loadouts.initialization = loadouts.initialization or {}
+				<script>manager.initialization = manager.initialization or {}
 </script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>initialize</name>
 					<packageName></packageName>
-					<script>function loadouts.initialization.initialize()
-	local mydb = loadouts.initialization.initialize_db()
+					<script>function manager.initialization.initialize()
+	local mydb = manager.initialization.initialize_db()
 
 	local profile = getProfileName()
 	local tokens = string.split(profile, " ")
@@ -157,10 +157,10 @@ loadouts = loadouts or initialize_loadouts()</script>
 
 	echo(f"\n# loading db for '{character}'\n")
 
-	local char_vars = loadouts.initialization.get_char_vars(mydb, character)
+	local char_vars = manager.initialization.get_char_vars(mydb, character)
   
-  loadouts.util.copy_fields_to_loadouts(char_vars, loadouts.char_fields)
-  loadouts.cache.build_loadouts_cache(char_vars)
+  manager.util.copy_fields_to_loadouts(char_vars, manager.char_fields)
+  manager.cache.build_loadouts_cache(char_vars)
 
 end</script>
 					<eventHandlerList />
@@ -168,7 +168,7 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>initialize db</name>
 					<packageName></packageName>
-					<script>function loadouts.initialization.initialize_db()
+					<script>function manager.initialization.initialize_db()
 	return db:create("char_info", {
 		char_vars = {
 			name = "",
@@ -201,7 +201,7 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>get char vars</name>
 					<packageName></packageName>
-					<script>function loadouts.initialization.get_char_vars(mydb, character)
+					<script>function manager.initialization.get_char_vars(mydb, character)
 
 	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 
@@ -231,8 +231,8 @@ end</script>
 					<name>loadouts_on_sys_connection_event</name>
 					<packageName></packageName>
 					<script>function loadouts_on_sys_connection_event(...)
-  if loadouts and loadouts.initialization and loadouts.initialization.initialize then
-    loadouts.initialization.initialize()
+  if loadouts and manager.initialization and manager.initialization.initialize then
+    manager.initialization.initialize()
   else
     echo('\n\n# Unable to initialize system!\n\n')
   end
@@ -245,23 +245,23 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Char</name>
 				<packageName></packageName>
-				<script>loadouts.char = loadouts.char or {}</script>
+				<script>manager.char = manager.char or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>set_current_loadout_type</name>
 					<packageName></packageName>
-					<script>function loadouts.char.set_current_loadout_type(mydb, lo_type)
-  loadouts.current_loadout_type = lo_type
-  db:set(mydb.char_vars.current_loadout_type, lo_type, db:eq(mydb.char_vars.name, loadouts.name))
+					<script>function manager.char.set_current_loadout_type(mydb, lo_type)
+  manager.current_loadout_type = lo_type
+  db:set(mydb.char_vars.current_loadout_type, lo_type, db:eq(mydb.char_vars.name, manager.name))
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
 					<name>set_current_loadout_index</name>
 					<packageName></packageName>
-					<script>function loadouts.char.set_current_loadout_index(mydb, lo_order)
-  loadouts.current_loadout_index = lo_order
-  db:set(mydb.char_vars.current_loadout_index, lo_order, db:eq(mydb.char_vars.name, loadouts.name))
+					<script>function manager.char.set_current_loadout_index(mydb, lo_order)
+  manager.current_loadout_index = lo_order
+  db:set(mydb.char_vars.current_loadout_index, lo_order, db:eq(mydb.char_vars.name, manager.name))
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -288,13 +288,13 @@ end</script>
 	return cache
 end
 
-loadouts.cache = loadouts.cache or initialize_loadouts_cache()</script>
+manager.cache = manager.cache or initialize_loadouts_cache()</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>build_loadouts_cache</name>
 					<packageName></packageName>
-					<script>function loadouts.cache.build_loadouts_cache(char_vars)
-  loadouts.cache.loadouts = {}
+					<script>function manager.cache.build_loadouts_cache(char_vars)
+  manager.cache.loadouts = {}
   
   local mydb = db:get_database("char_info")
   local los = db:fetch(mydb.loadout)
@@ -305,10 +305,10 @@ loadouts.cache = loadouts.cache or initialize_loadouts_cache()</script>
   end
   
   for k, v in pairs(los) do
-    local stance = loadouts.cache.loadouts[v.lo_type] or {}
-    stance[v.lo_order] = loadouts.util.copy_table(v, loadouts.loadout_fields)
+    local stance = manager.cache.loadouts[v.lo_type] or {}
+    stance[v.lo_order] = manager.util.copy_table(v, manager.loadout_fields)
     
-    loadouts.cache.loadouts[v.lo_type] = stance
+    manager.cache.loadouts[v.lo_type] = stance
     echo(f'# Building cache for loadout: "{v.name}"\n')
 	end
 end</script>
@@ -317,33 +317,33 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>cache_current_loadout</name>
 					<packageName></packageName>
-					<script>function loadouts.cache.cache_current_loadout()
-  if table.contains(loadouts.cache.loadouts, loadouts.current_loadout_type) then
-    local lostbl = loadouts.cache.loadouts[loadouts.current_loadout_type]
+					<script>function manager.cache.cache_current_loadout()
+  if table.contains(manager.cache.loadouts, manager.current_loadout_type) then
+    local lostbl = manager.cache.loadouts[manager.current_loadout_type]
     
-    if loadouts.current_loadout_index == 0 or not table.contains(lostbl, loadouts.current_loadout_index) then
-      echo(f'# Unable to prepare "{loadouts.current_loadout_type}" loadout at index {loadouts.current_loadout_index}, not found\n')
+    if manager.current_loadout_index == 0 or not table.contains(lostbl, manager.current_loadout_index) then
+      echo(f'# Unable to prepare "{manager.current_loadout_type}" loadout at index {manager.current_loadout_index}, not found\n')
     else
-      local lo = lostbl[loadouts.current_loadout_index]
-      loadouts.loadout_name = lo.name
-      loadouts.util.copy_fields_to_loadouts(lo, loadouts.cache.loadout_fields_without_name)
+      local lo = lostbl[manager.current_loadout_index]
+      manager.loadout_name = lo.name
+      manager.util.copy_fields_to_loadouts(lo, manager.cache.loadout_fields_without_name)
     end
   else
-    echo(f'# Unable to prepare loadout "{loadouts.current_loadout_type}", not found\n')
+    echo(f'# Unable to prepare loadout "{manager.current_loadout_type}", not found\n')
   end
 end</script>
 					<eventHandlerList />
 				</Script>
 			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
-				<name>Loadouts</name>
+				<name>Manager</name>
 				<packageName></packageName>
-				<script>loadouts.loadouts = loadouts.loadouts or {}</script>
+				<script>manager.loadouts = manager.loadouts or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>list</name>
 					<packageName></packageName>
-					<script>function loadouts.loadouts.list()
+					<script>function manager.loadouts.list()
   local mydb = db:get_database("char_info")
   local lostbl = db:fetch(mydb.loadout)
   
@@ -354,7 +354,7 @@ end</script>
   
   for k, v in pairs(lostbl) do
     echo(f'# loadout: {v.name} ({v.lo_type}:{v.lo_order}) - ')
-    loadouts.util.echo_table(v, {'stance', 'wield', 'sheath'})
+    manager.util.echo_table(v, {'stance', 'wield', 'sheath'})
     echo('\n')
 	end
 end</script>
@@ -363,7 +363,7 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>add</name>
 					<packageName></packageName>
-					<script>function loadouts.loadouts.add(record)
+					<script>function manager.loadouts.add(record)
   local mydb = db:get_database("char_info")
   
 	local r, err = db:add(mydb.loadout, record)
@@ -374,12 +374,12 @@ end</script>
     echo(f"# loadout: '{record.name}' added\n")
   end
   
-  if loadouts.current_loadout_type == nil or loadouts.current_loadout_type == '' then
-    loadouts.char.set_current_loadout_type(mydb, record.lo_type)
+  if manager.current_loadout_type == nil or manager.current_loadout_type == '' then
+    manager.char.set_current_loadout_type(mydb, record.lo_type)
   end
   
-  if loadouts.current_loadout_index == 0 then
-    loadouts.char.set_current_loadout_index(mydb, record.lo_order)
+  if manager.current_loadout_index == 0 then
+    manager.char.set_current_loadout_index(mydb, record.lo_order)
   end
 end</script>
 					<eventHandlerList />
@@ -387,12 +387,12 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>clear</name>
 					<packageName></packageName>
-					<script>function loadouts.loadouts.clear()
+					<script>function manager.loadouts.clear()
   local mydb = db:get_database("char_info")
   db:delete(mydb.loadout, true)
   
-  loadouts.char.set_current_loadout_type(mydb, '')
-  loadouts.char.set_current_loadout_index(mydb, 0)
+  manager.char.set_current_loadout_type(mydb, '')
+  manager.char.set_current_loadout_index(mydb, 0)
   
   echo("# loadouts cleared\n")
 end</script>
@@ -402,17 +402,17 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Misc</name>
 				<packageName></packageName>
-				<script>loadouts.misc = loadouts.misc or {}</script>
+				<script>manager.misc = manager.misc or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>highlight</name>
 					<packageName></packageName>
-					<script>function loadouts.misc.highlight(cg, txt, color)
+					<script>function manager.misc.highlight(cg, txt, color)
 	color = color or "white"
 	selectCaptureGroup(cg)
 	fg(color)
 	replace(string.upper(txt))
-	loadouts.misc.resetFormatting()
+	manager.misc.resetFormatting()
 end
 </script>
 					<eventHandlerList />
@@ -420,7 +420,7 @@ end
 				<Script isActive="yes" isFolder="no">
 					<name>resetFormatting</name>
 					<packageName></packageName>
-					<script>function loadouts.misc.resetFormatting()
+					<script>function manager.misc.resetFormatting()
 	deselect()
 	resetFormat()
 end</script>
@@ -429,12 +429,12 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>replaceCurrentLine</name>
 					<packageName></packageName>
-					<script>function loadouts.misc.replaceCurrentLine(txt, color)
+					<script>function manager.misc.replaceCurrentLine(txt, color)
 	color = color or "white"
 	selectString(line, 1)
 	fg(color)
 	replace(txt)
-	loadouts.misc.resetFormatting()
+	manager.misc.resetFormatting()
 end
 </script>
 					<eventHandlerList />
@@ -442,31 +442,31 @@ end
 				<Script isActive="yes" isFolder="no">
 					<name>freplaceCurrentLine</name>
 					<packageName></packageName>
-					<script>function loadouts.misc.freplaceCurrentLine(txt)
+					<script>function manager.misc.freplaceCurrentLine(txt)
 	selectCurrentLine()
 	replace("")
 	cecho(txt .. "\n")
-	loadouts.misc.resetFormatting()
+	manager.misc.resetFormatting()
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
 					<name>replaceCaptureGroup</name>
 					<packageName></packageName>
-					<script>function loadouts.misc.replaceCaptureGroup(txt, group, color)
+					<script>function manager.misc.replaceCaptureGroup(txt, group, color)
 	group = group or 2
 	color = color or "white"
 	selectCaptureGroup(group)
 	fg(color)
 	replace(txt)
-	loadouts.misc.resetFormatting()
+	manager.misc.resetFormatting()
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
 					<name>announce_variable</name>
 					<packageName></packageName>
-					<script>function loadouts.misc.announce_variable(name, value)
+					<script>function manager.misc.announce_variable(name, value)
   if not value then
     value = "&lt;nil&gt;"
   end
@@ -479,7 +479,7 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Actions</name>
 				<packageName></packageName>
-				<script>loadouts.actions = loadouts.actions or {}</script>
+				<script>manager.actions = manager.actions or {}</script>
 				<eventHandlerList />
 				<ScriptGroup isActive="yes" isFolder="yes">
 					<name>Wielding</name>
@@ -564,21 +564,21 @@ end</script>
 	return wielding
 end
 
-loadouts.actions.wielding = loadouts.actions.wielding or initialize_loadouts_actions_wielding()</script>
+manager.actions.wielding = manager.actions.wielding or initialize_loadouts_actions_wielding()</script>
 					<eventHandlerList />
 					<Script isActive="yes" isFolder="no">
 						<name>sheath_all</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.sheath_all()
-	if loadouts.actions.wielding.sheathable then
+						<script>function manager.actions.wielding.sheath_all()
+	if manager.actions.wielding.sheathable then
 		send("sheath all")
 	end
   
-  if loadouts.actions.wielding.right_hand == "magic" or loadouts.actions.wielding.left_hand == "magic" then
+  if manager.actions.wielding.right_hand == "magic" or manager.actions.wielding.left_hand == "magic" then
     send('magic')
   end
   
-  if loadouts.actions.wielding.left_hand == "tower" or loadouts.actions.wielding.left_hand == "kite" then
+  if manager.actions.wielding.left_hand == "tower" or manager.actions.wielding.left_hand == "kite" then
     send("lr")
   end
 end</script>
@@ -587,7 +587,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>add_loadout</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.add_loadout(name, right_hand, left_hand, style)
+						<script>function manager.actions.wielding.add_loadout(name, right_hand, left_hand, style)
   local mydb = db:get_database("char_info")
   
 	local r, err = db:add(mydb.loadout, {
@@ -614,7 +614,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>draw_loadout</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.draw_loadout(new_style)
+						<script>function manager.actions.wielding.draw_loadout(new_style)
 
   if new_style ~= 'any' and new_style ~= gw.actions.wielding.style then
     send('style ' .. new_style)
@@ -649,23 +649,23 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>switch_loadout</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.switch_loadout(name)
-  if loadouts.actions.wielding.current_loadout == name then
+						<script>function manager.actions.wielding.switch_loadout(name)
+  if manager.actions.wielding.current_loadout == name then
     echo("# loadout '" .. name .. "' already loaded\n")
     return
   end
 
 	local mydb = db:get_database("char_info")
   
-  loadouts.actions.wielding.sheath_all()
+  manager.actions.wielding.sheath_all()
   
-  local new_style = loadouts.actions.wielding.set_loadout(mydb, name)
-  db:set(mydb.char_vars.current_loadout, name, db:eq(mydb.char_vars.name, loadouts.initialization.character))
-  loadouts.actions.wielding.current_loadout = name
+  local new_style = manager.actions.wielding.set_loadout(mydb, name)
+  db:set(mydb.char_vars.current_loadout, name, db:eq(mydb.char_vars.name, manager.initialization.character))
+  manager.actions.wielding.current_loadout = name
   
-  loadouts.actions.wielding.draw_loadout(new_style)
+  manager.actions.wielding.draw_loadout(new_style)
   
-  loadouts.misc.announce_variable("loadout", name)
+  manager.misc.announce_variable("loadout", name)
   
 end</script>
 						<eventHandlerList />
@@ -673,7 +673,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>get_loadout</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.get_loadout(mydb, name)
+						<script>function manager.actions.wielding.get_loadout(mydb, name)
   local loadout = db:fetch(mydb.loadout, db:eq(mydb.loadout.name, name))
   
   if #loadout == 0 then
@@ -688,8 +688,8 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>set_loadout</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.set_loadout(mydb, name)
-  local loadout = loadouts.actions.wielding.get_loadout(mydb, name)
+						<script>function manager.actions.wielding.set_loadout(mydb, name)
+  local loadout = manager.actions.wielding.get_loadout(mydb, name)
   
   if loadout == nil then
     echo("# no loadout found called: " .. name .. "\n")
@@ -720,7 +720,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>list_loadouts</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.list_loadouts()
+						<script>function manager.actions.wielding.list_loadouts()
   local mydb = db:get_database("char_info")
   local loadouts = db:fetch(mydb.loadout)
   
@@ -744,7 +744,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>clear_loadouts</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.clear_loadouts()
+						<script>function manager.actions.wielding.clear_loadouts()
   local mydb = db:get_database("char_info")
   db:delete(mydb.loadout, true)
   
@@ -755,7 +755,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>set_loadout_slot</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.set_loadout_slot(slot, loadout)
+						<script>function manager.actions.wielding.set_loadout_slot(slot, loadout)
 
   if slot &gt; 3 or slot &lt; 1 then
     echo("# error: attempting to set invalid slot " .. slot .. "\n")
@@ -791,7 +791,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>list_loadout_slots</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.list_loadout_slots()
+						<script>function manager.actions.wielding.list_loadout_slots()
   local mydb = db:get_database("char_info")
   local char_vars = gw.initialization.get_char_vars(mydb, gw.initialization.character)
   
@@ -804,7 +804,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>set_action</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.set_action(name, type, action)
+						<script>function manager.actions.wielding.set_action(name, type, action)
   local mydb = db:get_database("char_info")
   
   local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
@@ -843,7 +843,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>is_sheathable</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.is_sheathable(weapon)
+						<script>function manager.actions.wielding.is_sheathable(weapon)
 	if weapon == "magic" or weapon == "unarmed" or weapon == nil or weapon == '' then
     return false
   else
@@ -855,7 +855,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>is_bow</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.is_bow(weapon)
+						<script>function manager.actions.wielding.is_bow(weapon)
 	if weapon == 'shortbow' or weapon == 'composite' or weapon == 'longbow' or weapon == 'crossbow' then
     return true
   else
@@ -1178,12 +1178,12 @@ end</script>
   return act
 end
 
-loadouts.actions.act = loadouts.actions.act or initialize_loadouts_actions_act()</script>
+manager.actions.act = manager.actions.act or initialize_loadouts_actions_act()</script>
 					<eventHandlerList />
 					<Script isActive="yes" isFolder="no">
 						<name>perform_action</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.act.perform_action(field)
+						<script>function manager.actions.act.perform_action(field)
   local mydb = db:get_database("char_info")
   local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
   
@@ -1211,7 +1211,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>find_action</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.act.find_action(loadout, action)
+						<script>function manager.actions.act.find_action(loadout, action)
   local act_table = action:split(":")
   
   if #act_table &lt; 2 then
@@ -1292,7 +1292,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>interpret_command</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.act.interpret_command(body_part, action, enhance)
+						<script>function manager.actions.act.interpret_command(body_part, action, enhance)
   for i = 1, #action do
     local c = action:sub(i,i)
     local cmd = string.format('%s%s', body_part, c)
@@ -1307,7 +1307,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>list_actions</name>
 						<packageName></packageName>
-						<script>function loadouts.actions.wielding.list_actions()
+						<script>function manager.actions.wielding.list_actions()
   local mydb = db:get_database("char_info")
   local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
   
@@ -1331,12 +1331,12 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Util</name>
 				<packageName></packageName>
-				<script>loadouts.util = loadouts.util or {}</script>
+				<script>manager.util = manager.util or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>copy_table</name>
 					<packageName></packageName>
-					<script>function loadouts.util.copy_table(tbl, fields)
+					<script>function manager.util.copy_table(tbl, fields)
   result = {}
   
   for _, field in ipairs(fields) do
@@ -1350,7 +1350,7 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>copy_fields_to_loadouts</name>
 					<packageName></packageName>
-					<script>function loadouts.util.copy_fields_to_loadouts(tbl, fields)
+					<script>function manager.util.copy_fields_to_loadouts(tbl, fields)
   for _, field in ipairs(fields) do
     loadouts[field] = tbl[field]
   end
@@ -1360,7 +1360,7 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>echo_table</name>
 					<packageName></packageName>
-					<script>function loadouts.util.echo_table(tbl, fields)
+					<script>function manager.util.echo_table(tbl, fields)
   local first_char = ''
   for _, field in ipairs(fields) do
     local v = tbl[field]
@@ -1380,7 +1380,7 @@ end</script>
 	</ScriptPackage>
 	<KeyPackage>
 		<KeyGroup isActive="yes" isFolder="yes">
-			<name>Loadouts</name>
+			<name>Manager</name>
 			<packageName></packageName>
 			<script></script>
 			<command></command>
