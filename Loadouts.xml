@@ -1187,7 +1187,7 @@ end</script>
 	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 
 	if #char_vars == 0 then
-		r, err = db:add(mydb.char_vars, {
+		local r, err = db:add(mydb.char_vars, {
 			name = character,
       current_loadout_type = nil,
       current_loadout_index = 0,
@@ -1217,6 +1217,18 @@ end</script>
   end  
 end</script>
 					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>loadouts_on_sys_connection_event</name>
+					<packageName></packageName>
+					<script>function loadouts_on_sys_connection_event(...)
+  if loadouts and loadouts.initialization and loadouts.initialization.initialize then
+    loadouts.initialization.initialize()
+  end
+end</script>
+					<eventHandlerList>
+						<string>sysConnectionEvent</string>
+					</eventHandlerList>
 				</Script>
 			</ScriptGroup>
 		</ScriptGroup>
