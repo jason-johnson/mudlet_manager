@@ -142,8 +142,7 @@ manager = manager or initialize_manager()</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Initialization</name>
 				<packageName></packageName>
-				<script>manager.initialization = manager.initialization or {}
-</script>
+				<script>manager.initialization = manager.initialization or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>initialize</name>
@@ -159,7 +158,7 @@ manager = manager or initialize_manager()</script>
 
 	local char_vars = manager.initialization.get_char_vars(mydb, character)
   
-  manager.util.copy_fields_to_loadouts(char_vars, manager.char_fields)
+  manager.util.copy_fields_to_manager(char_vars, manager.char_fields)
   manager.cache.build_loadouts_cache(char_vars)
 
 end</script>
@@ -228,10 +227,10 @@ end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>loadouts_on_sys_connection_event</name>
+					<name>manager_on_sys_connection_event</name>
 					<packageName></packageName>
-					<script>function loadouts_on_sys_connection_event(...)
-  if loadouts and manager.initialization and manager.initialization.initialize then
+					<script>function manager_on_sys_connection_event(...)
+  if manager and manager.initialization and manager.initialization.initialize then
     manager.initialization.initialize()
   else
     echo('\n\n# Unable to initialize system!\n\n')
@@ -326,7 +325,7 @@ end</script>
     else
       local lo = lostbl[manager.current_loadout_index]
       manager.loadout_name = lo.name
-      manager.util.copy_fields_to_loadouts(lo, manager.cache.loadout_fields_without_name)
+      manager.util.copy_fields_to_manager(lo, manager.cache.loadout_fields_without_name)
     end
   else
     echo(f'# Unable to prepare loadout "{manager.current_loadout_type}", not found\n')
@@ -1348,11 +1347,11 @@ end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>copy_fields_to_loadouts</name>
+					<name>copy_fields_to_manager</name>
 					<packageName></packageName>
-					<script>function manager.util.copy_fields_to_loadouts(tbl, fields)
+					<script>function manager.util.copy_fields_to_manager(tbl, fields)
   for _, field in ipairs(fields) do
-    loadouts[field] = tbl[field]
+    manager[field] = tbl[field]
   end
 end</script>
 					<eventHandlerList />
