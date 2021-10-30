@@ -19,7 +19,8 @@
 			<regexCodePropertyList />
 			<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
 				<name>Loadouts Keep</name>
-				<script></script>
+				<script>-- sysConnectionEvent
+-- sysLoadEvent</script>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
@@ -112,12 +113,82 @@
 			<packageName></packageName>
 			<script>function initialize_loadouts()
 	local loadouts = {}
+  
+  loadouts.char_fields = {
+    'name',
+    'current_loadout_type',
+    'current_loadout_index',
+    'container',
+  }
 
 	return loadouts
 end
 
 loadouts = loadouts or initialize_loadouts()</script>
 			<eventHandlerList />
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Cache</name>
+				<packageName></packageName>
+				<script>function initialize_loadouts_cache()
+	local cache = {}
+  
+  cache.loadouts = {}
+  cache.loadout_fields = {
+    'name',
+    'wield',
+    'sheath',
+    'stance',
+    'main_action',
+    'fast_action',
+    'slow_action',
+    'main_action_alt',
+    'fast_action_alt',
+    'slow_action_alt',
+  }
+
+	return cache
+end
+
+loadouts.cache = loadouts.cache or initialize_loadouts_cache()</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>build_loadouts_cache</name>
+					<packageName></packageName>
+					<script>function loadouts.cache.build_loadouts_cache(char_vars)
+  loadouts.cache.loadouts = {}
+  
+  local mydb = db:get_database("char_info")
+  local los = db:fetch(mydb.loadout)
+  
+  if #los == 0 then
+    echo("# no loadouts found\n")
+    return
+  end
+  
+  for k, v in pairs(los) do
+    local stance = loadouts.cache.loadouts[v.lo_type] or {}
+    stance[v.lo_order] = loadouts.cache.copy_loadout_table(v)
+    
+    loadouts.cache.loadouts[v.lo_type] = stance
+	end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>copy_loadout_table</name>
+					<packageName></packageName>
+					<script>function loadouts.cache.copy_loadout_table(lot)
+  result = {}
+  
+  for _, field in ipairs(loadouts.cache.loadout_fields) do
+    result[field] = lot[field]
+  end
+  
+  return result
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Misc</name>
 				<packageName></packageName>
@@ -198,12 +269,12 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Actions</name>
 				<packageName></packageName>
-				<script>gw.actions = gw.actions or {}</script>
+				<script>loadouts.actions = loadouts.actions or {}</script>
 				<eventHandlerList />
 				<ScriptGroup isActive="yes" isFolder="yes">
 					<name>Wielding</name>
 					<packageName></packageName>
-					<script>function initialize_gw_actions_wielding()
+					<script>function initialize_loadouts_actions_wielding()
 	local wielding = {}
 
 	wielding.left_hand = nil
@@ -283,31 +354,8 @@ end</script>
 	return wielding
 end
 
-gw.actions.wielding = gw.actions.wielding or initialize_gw_actions_wielding()</script>
+loadouts.actions.wielding = loadouts.actions.wielding or initialize_loadouts_actions_wielding()</script>
 					<eventHandlerList />
-					<Script isActive="yes" isFolder="no">
-						<name>wield_lockpicks</name>
-						<packageName></packageName>
-						<script>function gw.actions.wielding.wield_lockpicks()
-	send("draw lockpicks")
-  send("swap")
-	send("ra")
-	
-	-- set up buttons for using lockpicks
-
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>wield_bow</name>
-						<packageName></packageName>
-						<script>function gw.actions.wielding.wield_bow()
-	send("draw bow")
-  send("swap")
-	send("ra")
-end</script>
-						<eventHandlerList />
-					</Script>
 					<Script isActive="yes" isFolder="no">
 						<name>sheath_all</name>
 						<packageName></packageName>
@@ -329,7 +377,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>add_loadout</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.add_loadout(name, right_hand, left_hand, style)
+						<script>function loadouts.actions.wielding.add_loadout(name, right_hand, left_hand, style)
   local mydb = db:get_database("char_info")
   
 	r, err = db:add(mydb.loadout, {
@@ -356,7 +404,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>draw_loadout</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.draw_loadout(new_style)
+						<script>function loadouts.actions.wielding.draw_loadout(new_style)
 
   if new_style ~= 'any' and new_style ~= gw.actions.wielding.style then
     send('style ' .. new_style)
@@ -385,16 +433,6 @@ end</script>
     end
   end
   
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>draw_hand</name>
-						<packageName></packageName>
-						<script>function gw.actions.wielding.draw_hand(weapon)
-  if gw.actions.wielding.sheathable then
-    send("draw " .. weapon)
-  end
 end</script>
 						<eventHandlerList />
 					</Script>
@@ -618,64 +656,9 @@ end</script>
 					</Script>
 				</ScriptGroup>
 				<ScriptGroup isActive="yes" isFolder="yes">
-					<name>Targetting</name>
-					<packageName></packageName>
-					<script>function initialize_gw_actions_targetting()
-	local targetting = {}
-
-	targetting.target = nil
-	targetting.prev_target = nil
-  targetting.mount_target = nil
-	targetting.prev_mount_target = nil
-
-	return targetting
-end
-
-gw.actions.targetting = gw.actions.targetting or initialize_gw_actions_targetting()</script>
-					<eventHandlerList />
-					<Script isActive="yes" isFolder="no">
-						<name>set_target</name>
-						<packageName></packageName>
-						<script>function gw.actions.targetting.set_target(target) 
-  gw.actions.wielding.prev_target = gw.actions.wielding.target
-  gw.actions.wielding.target = target
-  
-  gw.misc.announce_variable("target", target)
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>set_prev_target</name>
-						<packageName></packageName>
-						<script>function gw.actions.targetting.set_prev_target()
-  gw.actions.targetting.set_target(gw.actions.wielding.prev_target)
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>set_mtarget</name>
-						<packageName></packageName>
-						<script>function gw.actions.targetting.set_mtarget(target) 
-  gw.actions.wielding.prev_mount_target = gw.actions.wielding.mount_target
-  gw.actions.wielding.mount_target = target
-  
-  gw.misc.announce_variable("mount_target", target)
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>set_prev_mtarget</name>
-						<packageName></packageName>
-						<script>function gw.actions.targetting.set_mtarget()
-  gw.actions.targetting.set_target(gw.actions.wielding.prev_mount_target)
-end</script>
-						<eventHandlerList />
-					</Script>
-				</ScriptGroup>
-				<ScriptGroup isActive="yes" isFolder="yes">
 					<name>Act</name>
 					<packageName></packageName>
-					<script>function initialize_gw_actions_act()
+					<script>function initialize_loadouts_actions_act()
   local act = {}
   
   local styles = {
@@ -985,12 +968,12 @@ end</script>
   return act
 end
 
-gw.actions.act = gw.actions.act or initialize_gw_actions_act()</script>
+loadouts.actions.act = loadouts.actions.act or initialize_loadouts_actions_act()</script>
 					<eventHandlerList />
 					<Script isActive="yes" isFolder="no">
 						<name>perform_action</name>
 						<packageName></packageName>
-						<script>function gw.actions.act.perform_action(field)
+						<script>function loadouts.actions.act.perform_action(field)
   local mydb = db:get_database("char_info")
   local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
   
@@ -1018,7 +1001,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>find_action</name>
 						<packageName></packageName>
-						<script>function gw.actions.act.find_action(loadout, action)
+						<script>function loadouts.actions.act.find_action(loadout, action)
   local act_table = action:split(":")
   
   if #act_table &lt; 2 then
@@ -1099,7 +1082,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>interpret_command</name>
 						<packageName></packageName>
-						<script>function gw.actions.act.interpret_command(body_part, action, enhance)
+						<script>function loadouts.actions.act.interpret_command(body_part, action, enhance)
   for i = 1, #action do
     local c = action:sub(i,i)
     local cmd = string.format('%s%s', body_part, c)
@@ -1114,7 +1097,7 @@ end</script>
 					<Script isActive="yes" isFolder="no">
 						<name>list_actions</name>
 						<packageName></packageName>
-						<script>function gw.actions.wielding.list_actions()
+						<script>function loadouts.actions.wielding.list_actions()
   local mydb = db:get_database("char_info")
   local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
   
@@ -1138,30 +1121,27 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Initialization</name>
 				<packageName></packageName>
-				<script>gw.initialization = gw.initialization or {}
+				<script>loadouts.initialization = loadouts.initialization or {}
 </script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>initialize</name>
 					<packageName></packageName>
-					<script>function gw.initialization.initialize()
-	local mydb = gw.initialization.initialize_db()
+					<script>function loadouts.initialization.initialize()
+	local mydb = loadouts.initialization.initialize_db()
 
 	local profile = getProfileName()
 	local tokens = string.split(profile, " ")
 	local character = tokens[#tokens]
 
-	gw.initialization.character = character
+	loadouts.initialization.character = character
 
 	echo("\n# loading db for '" .. character .. "'\n")
 
-	local char_vars = gw.initialization.get_char_vars(mydb, character)
-
-  if #char_vars.current_loadout ~= 0 then
-    gw.actions.wielding.set_loadout(mydb, char_vars.current_loadout)
-  end
+	local char_vars = loadouts.initialization.get_char_vars(mydb, character)
   
-  gw.initialization.initialize_data(char_vars)
+  loadouts.initialization.initialize_loadouts_vars(char_vars)
+  loadouts.cache.build_loadouts_cache(char_vars)
 
 end</script>
 					<eventHandlerList />
@@ -1169,22 +1149,23 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>initialize db</name>
 					<packageName></packageName>
-					<script>function gw.initialization.initialize_db()
+					<script>function loadouts.initialization.initialize_db()
 	return db:create("char_info", {
 		char_vars = {
 			name = "",
-			current_loadout = "",
-      loadout_slot1 = "",
-      loadout_slot2 = "",
-      loadout_slot3 = "",
+			current_loadout_type = "",
+      current_loadout_index = 0,
+      container = "",
 			_unique = { "name" },
 			_violations = "FAIL"
 		},
     loadout = {
       name = "",
-			left_hand = "",
-			right_hand = "",
-      style = "",
+			wield = "",
+			sheath = "",
+      stance = "",
+      lo_type = "",
+      lo_order = 0,
       main_action = "",
       fast_action = "",
       slow_action = "",
@@ -1201,24 +1182,23 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>get char vars</name>
 					<packageName></packageName>
-					<script>function gw.initialization.get_char_vars(mydb, character)
+					<script>function loadouts.initialization.get_char_vars(mydb, character)
 
 	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 
 	if #char_vars == 0 then
 		r, err = db:add(mydb.char_vars, {
 			name = character,
-      current_loadout = nil,
-      loadout_slot1 = "main",
-      loadout_slot2 = "second",
-      loadout_slot3 = "third"
+      current_loadout_type = nil,
+      current_loadout_index = 0,
+      container = nil,
 		})
     
     if not r then
-      echo("# error creating char_vars: " .. err .. "\n")
+      echo(f'# error creating char_vars: {err}\n')
     end
 
-		echo("\n# new db created\n")
+		echo('\n# new db created\n')
 
 		char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 	end
@@ -1229,15 +1209,12 @@ end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>initialize data</name>
+					<name>initialize_loadouts_vars</name>
 					<packageName></packageName>
-					<script>function gw.initialization.initialize_data(char_vars)
-	
-  gw.actions.wielding.current_loadout = char_vars.current_loadout
-  gw.actions.wielding.loadout_slots[1] = char_vars.loadout_slot1
-  gw.actions.wielding.loadout_slots[2] = char_vars.loadout_slot2
-  gw.actions.wielding.loadout_slots[3] = char_vars.loadout_slot3
-
+					<script>function loadouts.initialization.initialize_loadouts_vars(char_vars)
+  for _, field in ipairs(loadouts.char_fields) do
+    loadouts[field] = char_vars[field]
+  end  
 end</script>
 					<eventHandlerList />
 				</Script>
