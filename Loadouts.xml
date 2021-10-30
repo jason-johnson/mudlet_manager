@@ -103,107 +103,6 @@
 				<packageName></packageName>
 				<regex>^\s*loactions\s+list\s*$</regex>
 			</Alias>
-			<AliasGroup isActive="yes" isFolder="yes">
-				<name>Actions</name>
-				<script></script>
-				<command></command>
-				<packageName></packageName>
-				<regex></regex>
-				<Alias isActive="yes" isFolder="no">
-					<name>targ (set targetl)</name>
-					<script>gw.actions.targetting.set_target(matches[3])
-
-if matches[3] then
-  send('target ' .. matches[3])
-else
-  send('target clear')
-end</script>
-					<command></command>
-					<packageName></packageName>
-					<regex>^\s*targ(\s+(\w+))?\s*$</regex>
-				</Alias>
-				<Alias isActive="yes" isFolder="no">
-					<name>mtarg (set mtarget)</name>
-					<script>gw.actions.targetting.set_mtarget(matches[3])
-
-if matches[3] then
-  send('mtarget ' .. matches[3])
-else
-  send('mtarget clear')
-end</script>
-					<command></command>
-					<packageName></packageName>
-					<regex>^\s*mtarg(\s+(\w+))?\s*$</regex>
-				</Alias>
-				<Alias isActive="yes" isFolder="no">
-					<name>cast spell</name>
-					<script>local hand = 'r'
-local spell = matches[4]
-local empower = matches[5]
-
-if matches[3] and matches[3] ~= '' then
-  hand = matches[3]
-end
-
-function cast_spell(h, s)
-  for i = 1, #s do
-    local c = s:sub(i,i)
-    local cmd = string.format('%s%s', h, c)
-    if empower and i == #s then
-      cmd = cmd .. "+"
-    end
-    send(cmd)
-  end
-end
-
-spells = {
-  fireball = 'ssp',
-  immolate = 'sswwp',
-  firebolt = 'sp',
-  ['summon minor fire elemental'] = 'wwwc',
-  teleport = 'wcp',
-  mend = 'wws',
-  shockblade = 'wwop',
-  ['dispel magic blue'] = 'ppo',
-  ['mystic armour'] = 'pwf',
-  ['lightning stream'] = 'pfo',
-  heal = 'fc',
-  ['detect invisible'] = 'wfo',
-  forcefield = 'o',
-  firestorm = 'sssc',
-  fever = 'swp',
-  dishearten = 'wsf',
-  portal = 'wccp',
-  enchant = 'wwp',
-  fireblade = 'wwos',
-  ['dispel magic green'] = 'ppc',
-  ['dispel magic red'] = 'ppf',
-  windblast = 'pwc',
-  ['lightning bolt'] = 'po',
-  invisibility = 'wfw',
-  bless = 'wfp',
-  ['burning fury'] = 'wwf',
-  ['resist energy heat'] = 'fwfs',
-  firebolt2 = 'ps',
-  fireshield = 'ffs',
-  ['resist energy shock'] = 'fwfp',
-  
-}
-
-if table.contains(spells, spell) then
-  gw.actions.act.interpret_command(hand, spells[spell], empower)
---  cast_spell(hand, spells[spell])
-else
-  echo(string.format("# Unknown spell: '%s', possible spells are:\n", spell))
-  for k, v in pairs(spells) do
-    echo(string.format("#\t%s - %s\n", v, k))
-  end
-end</script>
-					<command></command>
-					<packageName></packageName>
-					<regex>^\s*cast\s+((r|l)\s+)?'([\w\s]+)'(\s+\+)?\s*$</regex>
-				</Alias>
-			</AliasGroup>
 		</AliasGroup>
 	</AliasPackage>
 	<ActionPackage />
@@ -211,38 +110,28 @@ end</script>
 		<ScriptGroup isActive="yes" isFolder="yes">
 			<name>Loadouts</name>
 			<packageName></packageName>
-			<script>function initialize_gw()
-	local gw = {}
-  
-  gw.right = {}
-	gw.right.aliases = {}
-	gw.right.triggers = { }
-	gw.right.keys = {}
-  
-  gw.left = {}
-  gw.left.aliases = {}
-	gw.left.triggers = { }
-	gw.left.keys = {}
+			<script>function initialize_loadouts()
+	local loadouts = {}
 
-	return gw
+	return loadouts
 end
 
-gw = gw or initialize_gw()</script>
+loadouts = loadouts or initialize_loadouts()</script>
 			<eventHandlerList />
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Misc</name>
 				<packageName></packageName>
-				<script>gw.misc = gw.misc or {}</script>
+				<script>loadouts.misc = loadouts.misc or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>highlight</name>
 					<packageName></packageName>
-					<script>function gw.misc.highlight(cg, txt, color)
+					<script>function loadouts.misc.highlight(cg, txt, color)
 	color = color or "white"
 	selectCaptureGroup(cg)
 	fg(color)
 	replace(string.upper(txt))
-	gw.misc.resetFormatting()
+	loadouts.misc.resetFormatting()
 end
 </script>
 					<eventHandlerList />
@@ -250,7 +139,7 @@ end
 				<Script isActive="yes" isFolder="no">
 					<name>resetFormatting</name>
 					<packageName></packageName>
-					<script>function gw.misc.resetFormatting()
+					<script>function loadouts.misc.resetFormatting()
 	deselect()
 	resetFormat()
 end</script>
@@ -259,12 +148,12 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>replaceCurrentLine</name>
 					<packageName></packageName>
-					<script>function gw.misc.replaceCurrentLine(txt, color)
+					<script>function loadouts.misc.replaceCurrentLine(txt, color)
 	color = color or "white"
 	selectString(line, 1)
 	fg(color)
 	replace(txt)
-	gw.misc.resetFormatting()
+	loadouts.misc.resetFormatting()
 end
 </script>
 					<eventHandlerList />
@@ -272,36 +161,36 @@ end
 				<Script isActive="yes" isFolder="no">
 					<name>freplaceCurrentLine</name>
 					<packageName></packageName>
-					<script>function gw.misc.freplaceCurrentLine(txt)
+					<script>function loadouts.misc.freplaceCurrentLine(txt)
 	selectCurrentLine()
 	replace("")
 	cecho(txt .. "\n")
-	gw.misc.resetFormatting()
+	loadouts.misc.resetFormatting()
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
 					<name>replaceCaptureGroup</name>
 					<packageName></packageName>
-					<script>function gw.misc.replaceCaptureGroup(txt, group, color)
+					<script>function loadouts.misc.replaceCaptureGroup(txt, group, color)
 	group = group or 2
 	color = color or "white"
 	selectCaptureGroup(group)
 	fg(color)
 	replace(txt)
-	gw.misc.resetFormatting()
+	loadouts.misc.resetFormatting()
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
 					<name>announce_variable</name>
 					<packageName></packageName>
-					<script>function gw.misc.announce_variable(name, value)
+					<script>function loadouts.misc.announce_variable(name, value)
   if not value then
     value = "&lt;nil&gt;"
   end
   
-	echo("# " .. name .. " now set to: " .. value .. "\n")
+	echo(f'# {name} now set to: {value}\n')
 end</script>
 					<eventHandlerList />
 				</Script>
