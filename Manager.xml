@@ -169,8 +169,12 @@ end</script>
 					<packageName></packageName>
 					<script>function manager.initialization.initialize_db()
 	return db:create("char_info", {
+    profile_info = {
+      char_must_be_selected = true,
+    },
 		char_vars = {
 			name = "",
+      description = "",
 			current_loadout_type = "",
       current_loadout_index = 0,
       container = "",
@@ -192,7 +196,7 @@ end</script>
       slow_action_alt = "",
       _unique = { "name" },
 			_violations = "FAIL"
-    }
+    },
 	})
 end</script>
 					<eventHandlerList />
