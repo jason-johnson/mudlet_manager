@@ -170,7 +170,10 @@ end</script>
 					<script>function manager.initialization.initialize_db()
 	return db:create("char_info", {
     profile_info = {
-      char_must_be_selected = true,
+      use_default_char = true,
+      default_char = "",
+      _unique = { "default_char" },
+			_violations = "FAIL"
     },
 		char_vars = {
 			name = "",
@@ -198,6 +201,33 @@ end</script>
 			_violations = "FAIL"
     },
 	})
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>get_profile_info</name>
+					<packageName></packageName>
+					<script>function manager.initialization.get_profile_info(mydb)
+
+	local profile_info = db:fetch(mydb.profile_info)
+
+	if #profile_info == 0 then
+		local r, err = db:add(mydb.profile_info, {
+			use_default_char = false,
+      default_char = ""
+		})
+    
+    if not r then
+      echo(f'# error creating profile_info: {err}\n')
+    end
+
+		echo('\n# new profile_info created\n')
+
+		profile_info = db:fetch(mydb.profile_info)
+	end
+
+  return profile_info[1]
+
 end</script>
 					<eventHandlerList />
 				</Script>
