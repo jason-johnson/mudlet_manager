@@ -48,9 +48,15 @@
 			<command></command>
 			<packageName></packageName>
 			<regex></regex>
-			<Alias isActive="yes" isFolder="no">
-				<name>loadouts add &lt;name&gt; &lt;type&gt; &lt;order&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
-				<script>local order = tonumber(matches[4])
+			<AliasGroup isActive="yes" isFolder="yes">
+				<name>Loadouts</name>
+				<script></script>
+				<command></command>
+				<packageName></packageName>
+				<regex></regex>
+				<Alias isActive="yes" isFolder="no">
+					<name>loadouts add &lt;name&gt; &lt;type&gt; &lt;order&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
+					<script>local order = tonumber(matches[4])
 if order &lt; 1 then
   echo('# loadouts add: order must be 1+\n')
 else
@@ -65,45 +71,88 @@ else
 
   manager.loadouts.add(lo)
 end</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*loadouts\s+add\s+(\w+)\s+(aggressive|passive)\s+(\d+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>loadouts list</name>
+					<script>manager.loadouts.list()</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*loadouts\s+list\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>loadouts clear</name>
+					<script>manager.loadouts.clear()</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*loadouts\s+clear\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>loadouts load &lt;name&gt;</name>
+					<script>gw.actions.wielding.switch_loadout(matches[2])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>loactions set &lt;main|fast|slow&gt; &lt;n|alt&gt; &lt;action name&gt;</name>
+					<script>gw.actions.wielding.set_action(matches[2], matches[3], matches[4])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*loactions\s+set\s+(main|fast|slow)\s+(n|alt)\s+([\w\s:]+)\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>loactions list</name>
+					<script>gw.actions.wielding.list_actions()</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*loactions\s+list\s*$</regex>
+				</Alias>
+			</AliasGroup>
+			<AliasGroup isActive="yes" isFolder="yes">
+				<name>Character</name>
+				<script></script>
 				<command></command>
 				<packageName></packageName>
-				<regex>^\s*loadouts\s+add\s+(\w+)\s+(aggressive|passive)\s+(\d+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loadouts list</name>
-				<script>manager.loadouts.list()</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loadouts\s+list\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loadouts clear</name>
-				<script>manager.loadouts.clear()</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loadouts\s+clear\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loadouts load &lt;name&gt;</name>
-				<script>gw.actions.wielding.switch_loadout(matches[2])</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loactions set &lt;main|fast|slow&gt; &lt;n|alt&gt; &lt;action name&gt;</name>
-				<script>gw.actions.wielding.set_action(matches[2], matches[3], matches[4])</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loactions\s+set\s+(main|fast|slow)\s+(n|alt)\s+([\w\s:]+)\s*$</regex>
-			</Alias>
-			<Alias isActive="yes" isFolder="no">
-				<name>loactions list</name>
-				<script>gw.actions.wielding.list_actions()</script>
-				<command></command>
-				<packageName></packageName>
-				<regex>^\s*loactions\s+list\s*$</regex>
-			</Alias>
+				<regex></regex>
+				<Alias isActive="yes" isFolder="no">
+					<name>characters list</name>
+					<script>manager.char.show_characters()</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*characters\s+list\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>characters add &lt;name&gt; &lt;description&gt;</name>
+					<script>manager.char.add_character(matches[2], matches[4])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*characters\s+add\s+(\w+)(\s+(.*))?\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>characters load &lt;name&gt;</name>
+					<script>manager.char.initialize(matches[2])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*characters\s+load\s+(\w+)\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>characters delete &lt;name&gt;</name>
+					<script>manager.char.delete(matches[2])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*characters\s+delete\s+(\w+)\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>characters default &lt;name&gt;</name>
+					<script>manager.char.set_default_character(matches[2])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*characters\s+default\s+(\w+)\s*$</regex>
+				</Alias>
+			</AliasGroup>
 		</AliasGroup>
 	</AliasPackage>
 	<ActionPackage />
@@ -149,18 +198,12 @@ manager = manager or initialize_manager()</script>
 					<packageName></packageName>
 					<script>function manager.initialization.initialize()
 	local mydb = manager.initialization.initialize_db()
-
-	local profile = getProfileName()
-	local tokens = string.split(profile, " ")
-	local character = tokens[#tokens]
-
-	echo(f"\n# loading db for '{character}'\n")
-
-	local char_vars = manager.initialization.get_char_vars(mydb, character)
+  local profile_info = manager.initialization.get_profile_info(mydb)
   
-  manager.util.copy_fields_to_manager(char_vars, manager.char_fields)
-  manager.cache.build_loadouts_cache(char_vars)
-
+  if profile_info.use_default_char == "true" then
+    local character = profile_info.default_char
+    manager.initialization.initialize_character(mydb, character)
+  end
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -170,7 +213,7 @@ end</script>
 					<script>function manager.initialization.initialize_db()
 	return db:create("char_info", {
     profile_info = {
-      use_default_char = true,
+      use_default_char = "false",
       default_char = "",
       _unique = { "default_char" },
 			_violations = "FAIL"
@@ -178,7 +221,6 @@ end</script>
 		char_vars = {
 			name = "",
       description = "",
-			current_loadout_type = "",
       current_loadout_index = 0,
       container = "",
 			_unique = { "name" },
@@ -189,18 +231,58 @@ end</script>
 			wield = "",
 			sheath = "",
       stance = "",
-      lo_type = "",
       lo_order = 0,
-      main_action = "",
-      fast_action = "",
-      slow_action = "",
-      main_action_alt = "",
-      fast_action_alt = "",
-      slow_action_alt = "",
       _unique = { "name" },
 			_violations = "FAIL"
     },
 	})
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>create_fk_tables</name>
+					<packageName></packageName>
+					<script>function manager.initialization.create_fk_tables()
+  db.debug_sql = true
+	local schema = [[
+    CREATE TABLE IF NOT EXISTS loadout_actions (
+	    loadout_name TEXT NOT NULL,
+   	  name TEXT NOT NULL,
+	    value TEXT NOT NULL,
+	    PRIMARY KEY (loadout_name, name),
+      FOREIGN KEY (loadout_name) 
+        REFERENCES loadout (name) 
+         ON DELETE CASCADE 
+         ON UPDATE NO ACTION
+    )]]
+  
+  local db_name = db:safe_name('char_info')
+  local conn = db.__conn[db_name]
+  local r, err = conn:execute(schema)
+  
+  if r == nil then
+    echo(f'# Unable to create join tables: {err}\n')
+    return
+  end
+  
+  r, err = conn:commit()
+  
+  if r == nil then
+    echo(f'# join table commit failed: {err}\n')
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>initialize_character</name>
+					<packageName></packageName>
+					<script>function manager.initialization.initialize_character(mydb, character)
+  echo(f"\n# loading db for '{character}'\n")
+  
+  local char_vars = manager.initialization.get_char_vars(mydb, character)
+  
+  manager.util.copy_fields_to_manager(char_vars, manager.char_fields)
+  manager.cache.build_loadouts_cache(char_vars)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -213,7 +295,7 @@ end</script>
 
 	if #profile_info == 0 then
 		local r, err = db:add(mydb.profile_info, {
-			use_default_char = false,
+			use_default_char = "false",
       default_char = ""
 		})
     
@@ -222,6 +304,8 @@ end</script>
     end
 
 		echo('\n# new profile_info created\n')
+    
+    manager.initialization.create_fk_tables()
 
 		profile_info = db:fetch(mydb.profile_info)
 	end
@@ -250,7 +334,7 @@ end</script>
       echo(f'# error creating char_vars: {err}\n')
     end
 
-		echo('\n# new db created\n')
+		echo(f'\n# new char_vars "{character}" created\n')
 
 		char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 	end
@@ -295,6 +379,101 @@ end</script>
 					<script>function manager.char.set_current_loadout_index(mydb, lo_order)
   manager.current_loadout_index = lo_order
   db:set(mydb.char_vars.current_loadout_index, lo_order, db:eq(mydb.char_vars.name, manager.name))
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>show_characters</name>
+					<packageName></packageName>
+					<script>function manager.char.show_characters()
+  local mydb = db:get_database("char_info")
+  local chars = db:fetch(mydb.char_vars)
+  
+  if #chars == 0 then
+    echo("# no chars found\n")
+    return
+  end
+  
+  for k, v in pairs(chars) do
+    echo(f'# character: {v.name} ({v.description})\n')
+	end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>add_character</name>
+					<packageName></packageName>
+					<script>function manager.char.add_character(character, description)
+--  db.debug_sql = true
+  local mydb = db:get_database("char_info")
+  local r, err = db:add(mydb.char_vars, {
+			name = character,
+      description = description,
+      current_loadout_type = nil,
+      current_loadout_index = 0,
+      container = nil,
+		})
+    
+    if not r then
+      echo(f'# error creating char_vars: {err}\n')
+    else
+      echo(f'\n# new char_vars "{character}" created\n')
+    end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>set_default_character</name>
+					<packageName></packageName>
+					<script>function manager.char.set_default_character(character)
+  local mydb = db:get_database("char_info")
+  
+	if not manager.char.character_exists(mydb, character) then
+    echo(f'# No such character: {character}\n')
+    return
+  end
+  
+  db:set(mydb.profile_info.default_char, character)
+  db:set(mydb.profile_info.use_default_char, "true")
+  
+  echo(f'\n# character "{character}" is now the default\n')
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>initialize</name>
+					<packageName></packageName>
+					<script>function manager.char.initialize(character)
+  local mydb = db:get_database("char_info")
+  
+  if not manager.char.character_exists(mydb, character) then
+    echo(f'# No such character: {character}\n')
+    return
+  end
+  
+  manager.initialization.initialize_character(mydb, character)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>delete</name>
+					<packageName></packageName>
+					<script>function manager.char.delete(character)
+  local mydb = db:get_database("char_info")
+  db:delete(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+  
+  echo(f'\n# character "{character}" deleted\n')
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>character_exists</name>
+					<packageName></packageName>
+					<script>function manager.char.character_exists(mydb, character)
+  
+  local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+
+	return #char_vars ~= 0
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -381,7 +560,7 @@ end</script>
   local lostbl = db:fetch(mydb.loadout)
   
   if #lostbl == 0 then
-    echo("# no loads out found\n")
+    echo("# no loadouts found\n")
     return
   end
   
