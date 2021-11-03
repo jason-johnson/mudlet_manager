@@ -84,7 +84,7 @@ manager.loadouts.add(lo)</script>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>loadouts load &lt;name&gt;</name>
-					<script>gw.actions.wielding.switch_loadout(matches[2])</script>
+					<script>manager.loadouts.initialize(matches[2])</script>
 					<command></command>
 					<packageName></packageName>
 					<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
@@ -97,11 +97,11 @@ manager.loadouts.add(lo)</script>
 					<regex>^\s*loactions\s+set\s+(main|fast|slow)\s+(n|alt)\s+([\w\s:]+)\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
-					<name>loactions list</name>
-					<script>gw.actions.wielding.list_actions()</script>
+					<name>loadout actions list</name>
+					<script>manager.loadouts.actions_list()</script>
 					<command></command>
 					<packageName></packageName>
-					<regex>^\s*loactions\s+list\s*$</regex>
+					<regex>^\s*loadout\s+actions\s+list\s*$</regex>
 				</Alias>
 			</AliasGroup>
 			<AliasGroup isActive="yes" isFolder="yes">
@@ -246,9 +246,14 @@ end</script>
     loadout_actions = [[
       CREATE TABLE IF NOT EXISTS loadout_actions (
         loadout_name TEXT NOT NULL,
+        char_name TEXT NOT NULL,
         name TEXT NOT NULL,
         value TEXT NOT NULL,
-        PRIMARY KEY (loadout_name, name),
+        PRIMARY KEY (loadout_name, char_name, name),
+        FOREIGN KEY (char_name)
+          REFERENCES char_vars (name)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION,
         FOREIGN KEY (loadout_name)
           REFERENCES loadout (name)
             ON DELETE CASCADE
@@ -551,6 +556,132 @@ end</script>
   manager.db.commit(conn)
   
   echo("# loadouts cleared\n")
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>initialize</name>
+					<packageName></packageName>
+					<script>function manager.loadouts.initialize(name)
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
+  
+  local db_name = "char_info"
+  local mydb = db:get_database(db_name)
+  local conn = manager.db.get_conn(db_name)
+
+  local cursor,err = conn:execute(f'select * from loadouts where char_name = "{manager.name}" and name = "{name}"')
+  
+  if cursor == nil then
+    echo(f'# getting loadout failed: {err}\n')
+  end
+  
+  local row = cursor:fetch ({}, "a")
+  
+  local already_loaded = false
+  
+  while row do
+    if already_loaded then
+      echo(f'# Impossible: loadout with name "{name}" has multiple records\n')
+      return
+    end
+    manager.loadouts.load_loadout(row)
+    already_loaded = true
+    row = cursor:fetch (row, "a")
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>load_loadout</name>
+					<packageName></packageName>
+					<script>function manager.loadouts.load_loadout(loadout)
+  -- set up other stuff
+  manager.current_loadout = loadout.name
+  -- set DB for current loadout
+  
+  echo(f"# Loadout '{loadout.name}' loaded\n")
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>actions_list</name>
+					<packageName></packageName>
+					<script>function manager.loadouts.actions_list()
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
+  
+  if not manager.current_loadout or manager.current_loadout == nil or manager.current_loadout == '' then
+    echo('# No loadout loaded\n')
+    return
+  end
+  
+  local db_name = "char_info"
+  local mydb = db:get_database(db_name)
+  local conn = manager.db.get_conn(db_name)
+  
+  local any_exist = false
+    
+  local cursor,err = conn:execute(f'select * from loadout_actions where char_name = "{manager.name}" and loadout_name = "{manager.current_loadout}"')
+  
+  if cursor == nil then
+    echo(f'# reading loadout actions failed: {err}\n')
+  end
+  
+  local row = cursor:fetch ({}, "a")
+  
+  while row do
+    any_exist = true
+    echo(f'# action: {row.name} = {row.value}\n')
+    row = cursor:fetch (row, "a")
+  end
+  
+  if not any_exist then
+    echo(f"# no loadout actions found for loadout '{manager.current_loadout}'\n")
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>actions_add</name>
+					<packageName></packageName>
+					<script>function manager.loadouts.actions_add(name, value)
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
+  
+  if not manager.current_loadout or manager.current_loadout == nil or manager.current_loadout == '' then
+    echo('# No loadout loaded\n')
+    return
+  end
+  
+  local db_name = "char_info"
+  local mydb = db:get_database(db_name)
+  local conn = manager.db.get_conn(db_name)
+  
+  local sheath = 'NULL'
+  
+  if record.sheath then
+    sheath = f'"{record.sheath}"'
+  end
+  
+  local r,err = conn:execute(f[[
+    insert into loadouts(char_name, name, wield, sheath, stance)
+    values("{manager.name}", "{record.name}", "{record.wield}", {sheath}, "{record.stance}")
+  ]])
+  
+  if r == nil then
+    echo(f'# adding loadout failed: {err}\n')
+  else
+    echo(f"# loadout: '{record.name}' added\n")
+  end
+  
+  manager.db.commit(conn)
 end</script>
 					<eventHandlerList />
 				</Script>
