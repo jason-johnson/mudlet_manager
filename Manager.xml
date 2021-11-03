@@ -55,25 +55,18 @@
 				<packageName></packageName>
 				<regex></regex>
 				<Alias isActive="yes" isFolder="no">
-					<name>loadouts add &lt;name&gt; &lt;type&gt; &lt;order&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
-					<script>local order = tonumber(matches[4])
-if order &lt; 1 then
-  echo('# loadouts add: order must be 1+\n')
-else
-  local lo = {
-    name = matches[2],
-    wield = matches[6],
-    sheath = matches[8],
-    stance = matches[5],
-    lo_type = matches[3],
-    lo_order = order,
-  }
+					<name>loadouts add &lt;name&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
+					<script>local lo = {
+  name = matches[2],
+  wield = matches[4],
+  sheath = matches[6],
+  stance = matches[3],
+}
 
-  manager.loadouts.add(lo)
-end</script>
+manager.loadouts.add(lo)</script>
 					<command></command>
 					<packageName></packageName>
-					<regex>^\s*loadouts\s+add\s+(\w+)\s+(aggressive|passive)\s+(\d+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
+					<regex>^\s*loadouts\s+add\s+(\w+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>loadouts list</name>
@@ -119,14 +112,14 @@ end</script>
 				<regex></regex>
 				<Alias isActive="yes" isFolder="no">
 					<name>characters list</name>
-					<script>manager.char.show_characters()</script>
+					<script>manager.char.list()</script>
 					<command></command>
 					<packageName></packageName>
 					<regex>^\s*characters\s+list\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>characters add &lt;name&gt; &lt;description&gt;</name>
-					<script>manager.char.add_character(matches[2], matches[4])</script>
+					<script>manager.char.add(matches[2], matches[4])</script>
 					<command></command>
 					<packageName></packageName>
 					<regex>^\s*characters\s+add\s+(\w+)(\s+(.*))?\s*$</regex>
@@ -211,7 +204,7 @@ end</script>
 					<name>initialize db</name>
 					<packageName></packageName>
 					<script>function manager.initialization.initialize_db()
-	return db:create("char_info", {
+	local mydb = db:create("char_info", {
     profile_info = {
       use_default_char = "false",
       default_char = "",
@@ -221,55 +214,60 @@ end</script>
 		char_vars = {
 			name = "",
       description = "",
-      current_loadout_index = 0,
+      current_loadout = "",
       container = "",
 			_unique = { "name" },
 			_violations = "FAIL"
 		},
-    loadout = {
-      name = "",
-			wield = "",
-			sheath = "",
-      stance = "",
-      lo_order = 0,
-      _unique = { "name" },
-			_violations = "FAIL"
-    },
 	})
+  manager.initialization.create_tables("char_info")
+  
+  return mydb
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>create_fk_tables</name>
+					<name>create_tables</name>
 					<packageName></packageName>
-					<script>function manager.initialization.create_fk_tables()
+					<script>function manager.initialization.create_tables(db_name_unsafe)
   db.debug_sql = true
-	local schema = [[
-    CREATE TABLE IF NOT EXISTS loadout_actions (
-	    loadout_name TEXT NOT NULL,
-   	  name TEXT NOT NULL,
-	    value TEXT NOT NULL,
-	    PRIMARY KEY (loadout_name, name),
-      FOREIGN KEY (loadout_name) 
-        REFERENCES loadout (name) 
-         ON DELETE CASCADE 
-         ON UPDATE NO ACTION
-    )]]
+	local sheets = {
+    loadouts = [[
+      CREATE TABLE IF NOT EXISTS loadouts (
+        name TEXT NOT NULL,
+        char_name TEXT NOT NULL,
+        wield TEXT NOT NULL,
+			  sheath TEXT NULL,
+        stance TEXT NOT NULL,
+        PRIMARY KEY (name, char_name),
+        FOREIGN KEY (char_name) 
+          REFERENCES char_vars (name) 
+            ON DELETE CASCADE 
+            ON UPDATE NO ACTION);]],
+    loadout_actions = [[
+      CREATE TABLE IF NOT EXISTS loadout_actions (
+        loadout_name TEXT NOT NULL,
+        name TEXT NOT NULL,
+        value TEXT NOT NULL,
+        PRIMARY KEY (loadout_name, name),
+        FOREIGN KEY (loadout_name)
+          REFERENCES loadout (name)
+            ON DELETE CASCADE
+            ON UPDATE NO ACTION);]]
+  }
+
+  local conn = manager.db.get_conn(db_name_unsafe)
   
-  local db_name = db:safe_name('char_info')
-  local conn = db.__conn[db_name]
-  local r, err = conn:execute(schema)
-  
-  if r == nil then
-    echo(f'# Unable to create join tables: {err}\n')
-    return
+  for name,sheet in pairs(sheets) do
+    local r, err = conn:execute(sheet)
+    
+    if r == nil then
+      echo(f'# Unable to create table {name}: {err}\n')
+      return
+    end
   end
   
-  r, err = conn:commit()
-  
-  if r == nil then
-    echo(f'# join table commit failed: {err}\n')
-  end
+  manager.db.commit(conn)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -282,7 +280,7 @@ end</script>
   local char_vars = manager.initialization.get_char_vars(mydb, character)
   
   manager.util.copy_fields_to_manager(char_vars, manager.char_fields)
-  manager.cache.build_loadouts_cache(char_vars)
+  -- manager.cache.build_loadouts_cache(char_vars)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -304,8 +302,6 @@ end</script>
     end
 
 		echo('\n# new profile_info created\n')
-    
-    manager.initialization.create_fk_tables()
 
 		profile_info = db:fetch(mydb.profile_info)
 	end
@@ -365,64 +361,6 @@ end</script>
 				<script>manager.char = manager.char or {}</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
-					<name>set_current_loadout_type</name>
-					<packageName></packageName>
-					<script>function manager.char.set_current_loadout_type(mydb, lo_type)
-  manager.current_loadout_type = lo_type
-  db:set(mydb.char_vars.current_loadout_type, lo_type, db:eq(mydb.char_vars.name, manager.name))
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>set_current_loadout_index</name>
-					<packageName></packageName>
-					<script>function manager.char.set_current_loadout_index(mydb, lo_order)
-  manager.current_loadout_index = lo_order
-  db:set(mydb.char_vars.current_loadout_index, lo_order, db:eq(mydb.char_vars.name, manager.name))
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>show_characters</name>
-					<packageName></packageName>
-					<script>function manager.char.show_characters()
-  local mydb = db:get_database("char_info")
-  local chars = db:fetch(mydb.char_vars)
-  
-  if #chars == 0 then
-    echo("# no chars found\n")
-    return
-  end
-  
-  for k, v in pairs(chars) do
-    echo(f'# character: {v.name} ({v.description})\n')
-	end
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>add_character</name>
-					<packageName></packageName>
-					<script>function manager.char.add_character(character, description)
---  db.debug_sql = true
-  local mydb = db:get_database("char_info")
-  local r, err = db:add(mydb.char_vars, {
-			name = character,
-      description = description,
-      current_loadout_type = nil,
-      current_loadout_index = 0,
-      container = nil,
-		})
-    
-    if not r then
-      echo(f'# error creating char_vars: {err}\n')
-    else
-      echo(f'\n# new char_vars "{character}" created\n')
-    end
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
 					<name>set_default_character</name>
 					<packageName></packageName>
 					<script>function manager.char.set_default_character(character)
@@ -456,6 +394,25 @@ end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
+					<name>add</name>
+					<packageName></packageName>
+					<script>function manager.char.add(character, description)
+--  db.debug_sql = true
+  local mydb = db:get_database("char_info")
+  local r, err = db:add(mydb.char_vars, {
+			name = character,
+      description = description,
+		})
+    
+    if not r then
+      echo(f'# error creating char_vars: {err}\n')
+    else
+      echo(f'\n# new char_vars "{character}" created\n')
+    end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
 					<name>delete</name>
 					<packageName></packageName>
 					<script>function manager.char.delete(character)
@@ -463,6 +420,24 @@ end</script>
   db:delete(mydb.char_vars, db:eq(mydb.char_vars.name, character))
   
   echo(f'\n# character "{character}" deleted\n')
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>list</name>
+					<packageName></packageName>
+					<script>function manager.char.list()
+  local mydb = db:get_database("char_info")
+  local chars = db:fetch(mydb.char_vars)
+  
+  if #chars == 0 then
+    echo("# no chars found\n")
+    return
+  end
+  
+  for k, v in pairs(chars) do
+    echo(f'# character: {v.name} ({v.description})\n')
+	end
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -556,19 +531,36 @@ end</script>
 					<name>list</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.list()
-  local mydb = db:get_database("char_info")
-  local lostbl = db:fetch(mydb.loadout)
-  
-  if #lostbl == 0 then
-    echo("# no loadouts found\n")
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
     return
   end
   
-  for k, v in pairs(lostbl) do
-    echo(f'# loadout: {v.name} ({v.lo_type}:{v.lo_order}) - ')
-    manager.util.echo_table(v, {'stance', 'wield', 'sheath'})
+  local db_name = "char_info"
+  local mydb = db:get_database(db_name)
+  local conn = manager.db.get_conn(db_name)
+  
+  local any_exist = false
+    
+  local cursor,err = conn:execute(f'select * from loadouts where char_name = "{manager.name}"')
+  
+  if cursor == nil then
+    echo(f'# reading loadouts failed: {err}\n')
+  end
+  
+  local row = cursor:fetch ({}, "a")
+  
+  while row do
+    any_exist = true
+    echo(f'# loadout: {row.name} - ')
+    manager.util.echo_table(row, {'stance', 'wield', 'sheath'})
     echo('\n')
-	end
+    row = cursor:fetch (row, "a")
+  end
+  
+  if not any_exist then
+    echo("# no loadouts found\n")
+  end
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -576,23 +568,27 @@ end</script>
 					<name>add</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.add(record)
-  local mydb = db:get_database("char_info")
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
   
-	local r, err = db:add(mydb.loadout, record)
+  local db_name = "char_info"
+  local mydb = db:get_database(db_name)
+  local conn = manager.db.get_conn(db_name)
   
-  if not r then
-    echo(f"# error: {err}\n")
+  local r,err = conn:execute(f[[
+    insert into loadouts(char_name, name, wield, sheath, stance)
+    values("{manager.name}", "{record.name}", "{record.wield}", "{record.sheath}", "{record.stance}")
+  ]])
+  
+  if r == nil then
+    echo(f'# adding loadout failed: {err}\n')
   else
     echo(f"# loadout: '{record.name}' added\n")
   end
   
-  if manager.current_loadout_type == nil or manager.current_loadout_type == '' then
-    manager.char.set_current_loadout_type(mydb, record.lo_type)
-  end
-  
-  if manager.current_loadout_index == 0 then
-    manager.char.set_current_loadout_index(mydb, record.lo_order)
-  end
+  manager.db.commit(conn)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -600,6 +596,11 @@ end</script>
 					<name>clear</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.clear()
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
+  
   local mydb = db:get_database("char_info")
   db:delete(mydb.loadout, true)
   
@@ -1539,6 +1540,33 @@ end</script>
 						<eventHandlerList />
 					</Script>
 				</ScriptGroup>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>DB</name>
+				<packageName></packageName>
+				<script>manager.db = manager.db or {}</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>get_conn</name>
+					<packageName></packageName>
+					<script>function manager.db.get_conn(db_name_unsafe)
+  local db_name = db:safe_name(db_name_unsafe)
+  return db.__conn[db_name]
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>commit</name>
+					<packageName></packageName>
+					<script>function manager.db.commit(conn)
+  local r, err = conn:commit()
+  
+  if r == nil then
+    echo(f'# db commit failed: {err}\n')
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
 			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Util</name>
