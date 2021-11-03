@@ -90,15 +90,15 @@ manager.loadouts.add(lo)</script>
 					<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
-					<name>loactions set &lt;main|fast|slow&gt; &lt;n|alt&gt; &lt;action name&gt;</name>
-					<script>gw.actions.wielding.set_action(matches[2], matches[3], matches[4])</script>
+					<name>loadout actions set &lt;main|fast|slow&gt;_&lt;n|alt&gt; &lt;action name&gt;</name>
+					<script>manager.loadouts.actions.set(matches[2], matches[3])</script>
 					<command></command>
 					<packageName></packageName>
-					<regex>^\s*loactions\s+set\s+(main|fast|slow)\s+(n|alt)\s+([\w\s:]+)\s*$</regex>
+					<regex>^\s*loadout\s+actions\s+set\s+(main_n|main_alt|fast_n|fast_alt|slow_n|slow_alt)\s+([\w\s:]+)\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>loadout actions list</name>
-					<script>manager.loadouts.actions_list()</script>
+					<script>manager.loadouts.actions.list()</script>
 					<command></command>
 					<packageName></packageName>
 					<regex>^\s*loadout\s+actions\s+list\s*$</regex>
@@ -466,14 +466,9 @@ end</script>
 					<name>list</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.list()
-  if not manager.name or manager.name == nil then
-    echo('# No character loaded\n')
-    return
-  end
+  local conn = manager.loadouts.get_conn()
   
-  local db_name = "char_info"
-  local mydb = db:get_database(db_name)
-  local conn = manager.db.get_conn(db_name)
+  if not conn then return end
   
   local any_exist = false
     
@@ -503,14 +498,9 @@ end</script>
 					<name>add</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.add(record)
-  if not manager.name or manager.name == nil then
-    echo('# No character loaded\n')
-    return
-  end
+  local conn = manager.loadouts.get_conn()
   
-  local db_name = "char_info"
-  local mydb = db:get_database(db_name)
-  local conn = manager.db.get_conn(db_name)
+  if not conn then return end
   
   local sheath = 'NULL'
   
@@ -537,14 +527,9 @@ end</script>
 					<name>clear</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.clear()
-  if not manager.name or manager.name == nil then
-    echo('# No character loaded\n')
-    return
-  end
+  local conn = manager.loadouts.get_conn()
   
-  local db_name = "char_info"
-  local mydb = db:get_database(db_name)
-  local conn = manager.db.get_conn(db_name)
+  if not conn then return end
   
   local r,err = conn:execute(f'delete from loadouts where char_name = "{manager.name}"')
   
@@ -563,14 +548,9 @@ end</script>
 					<name>initialize</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.initialize(name)
-  if not manager.name or manager.name == nil then
-    echo('# No character loaded\n')
-    return
-  end
+  local conn = manager.loadouts.get_conn()
   
-  local db_name = "char_info"
-  local mydb = db:get_database(db_name)
-  local conn = manager.db.get_conn(db_name)
+  if not conn then return end
 
   local cursor,err = conn:execute(f'select * from loadouts where char_name = "{manager.name}" and name = "{name}"')
   
@@ -607,22 +587,34 @@ end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>actions_list</name>
+					<name>get_conn</name>
 					<packageName></packageName>
-					<script>function manager.loadouts.actions_list()
+					<script>function manager.loadouts.get_conn()
   if not manager.name or manager.name == nil then
     echo('# No character loaded\n')
-    return
-  end
-  
-  if not manager.current_loadout or manager.current_loadout == nil or manager.current_loadout == '' then
-    echo('# No loadout loaded\n')
     return
   end
   
   local db_name = "char_info"
   local mydb = db:get_database(db_name)
   local conn = manager.db.get_conn(db_name)
+  
+  return conn
+end</script>
+					<eventHandlerList />
+				</Script>
+				<ScriptGroup isActive="yes" isFolder="yes">
+					<name>Actions</name>
+					<packageName></packageName>
+					<script>manager.loadouts.actions = manager.loadouts.actions or {}</script>
+					<eventHandlerList />
+					<Script isActive="yes" isFolder="no">
+						<name>list</name>
+						<packageName></packageName>
+						<script>function manager.loadouts.actions.list()
+  local conn = manager.loadouts.actions.get_conn()
+  
+  if not conn then return end
   
   local any_exist = false
     
@@ -634,9 +626,10 @@ end</script>
   
   local row = cursor:fetch ({}, "a")
   
+  echo(f'# Loadout: {manager.current_loadout}\n')
   while row do
     any_exist = true
-    echo(f'# action: {row.name} = {row.value}\n')
+    echo(f'#\taction: {row.name} = {row.value}\n')
     row = cursor:fetch (row, "a")
   end
   
@@ -644,12 +637,38 @@ end</script>
     echo(f"# no loadout actions found for loadout '{manager.current_loadout}'\n")
   end
 end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>actions_add</name>
-					<packageName></packageName>
-					<script>function manager.loadouts.actions_add(name, value)
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>set</name>
+						<packageName></packageName>
+						<script>function manager.loadouts.actions.set(name, value)
+  local conn = manager.loadouts.actions.get_conn()
+  
+  if not conn then return end
+  
+  local sql = f[[
+    REPLACE INTO loadout_actions(char_name, loadout_name, name, value)
+    values("{manager.name}", "{manager.current_loadout}", "{name}", "{value}")
+  ]]
+  
+  local r,err = conn:execute(sql)
+  
+  if r == nil then
+    echo(f'# adding loadout action failed: {err}\n')
+    echo(f'\n# SQL: {sql}\n')
+  else
+    echo(f"# loadout action: '{name}' set for loadout '{manager.current_loadout}'\n")
+  end
+  
+  manager.db.commit(conn)
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>get_conn</name>
+						<packageName></packageName>
+						<script>function manager.loadouts.actions.get_conn()
   if not manager.name or manager.name == nil then
     echo('# No character loaded\n')
     return
@@ -664,27 +683,11 @@ end</script>
   local mydb = db:get_database(db_name)
   local conn = manager.db.get_conn(db_name)
   
-  local sheath = 'NULL'
-  
-  if record.sheath then
-    sheath = f'"{record.sheath}"'
-  end
-  
-  local r,err = conn:execute(f[[
-    insert into loadouts(char_name, name, wield, sheath, stance)
-    values("{manager.name}", "{record.name}", "{record.wield}", {sheath}, "{record.stance}")
-  ]])
-  
-  if r == nil then
-    echo(f'# adding loadout failed: {err}\n')
-  else
-    echo(f"# loadout: '{record.name}' added\n")
-  end
-  
-  manager.db.commit(conn)
+  return conn
 end</script>
-					<eventHandlerList />
-				</Script>
+						<eventHandlerList />
+					</Script>
+				</ScriptGroup>
 			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Misc</name>
