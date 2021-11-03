@@ -158,8 +158,7 @@ manager.loadouts.add(lo)</script>
   
   manager.char_fields = {
     'name',
-    'current_loadout_type',
-    'current_loadout_index',
+    'current_loadout',
     'container',
   }
   
@@ -449,75 +448,6 @@ end</script>
   local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 
 	return #char_vars ~= 0
-end</script>
-					<eventHandlerList />
-				</Script>
-			</ScriptGroup>
-			<ScriptGroup isActive="yes" isFolder="yes">
-				<name>Cache</name>
-				<packageName></packageName>
-				<script>function initialize_manager_cache()
-	local cache = {}
-  
-  cache.loadouts = {}
-  cache.loadout_fields_without_name = {
-    'wield',
-    'sheath',
-    'stance',
-    'main_action',
-    'fast_action',
-    'slow_action',
-    'main_action_alt',
-    'fast_action_alt',
-    'slow_action_alt',
-  }
-
-	return cache
-end
-
-manager.cache = manager.cache or initialize_manager_cache()</script>
-				<eventHandlerList />
-				<Script isActive="yes" isFolder="no">
-					<name>build_loadouts_cache</name>
-					<packageName></packageName>
-					<script>function manager.cache.build_loadouts_cache(char_vars)
-  manager.cache.loadouts = {}
-  
-  local mydb = db:get_database("char_info")
-  local los = db:fetch(mydb.loadout)
-  
-  if #los == 0 then
-    echo("# no loadouts found\n")
-    return
-  end
-  
-  for k, v in pairs(los) do
-    local stance = manager.cache.loadouts[v.lo_type] or {}
-    stance[v.lo_order] = manager.util.copy_table(v, manager.loadout_fields)
-    
-    manager.cache.loadouts[v.lo_type] = stance
-    echo(f'# Building cache for loadout: "{v.name}"\n')
-	end
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>cache_current_loadout</name>
-					<packageName></packageName>
-					<script>function manager.cache.cache_current_loadout()
-  if table.contains(manager.cache.loadouts, manager.current_loadout_type) then
-    local lostbl = manager.cache.loadouts[manager.current_loadout_type]
-    
-    if manager.current_loadout_index == 0 or not table.contains(lostbl, manager.current_loadout_index) then
-      echo(f'# Unable to prepare "{manager.current_loadout_type}" loadout at index {manager.current_loadout_index}, not found\n')
-    else
-      local lo = lostbl[manager.current_loadout_index]
-      manager.loadout_name = lo.name
-      manager.util.copy_fields_to_manager(lo, manager.cache.loadout_fields_without_name)
-    end
-  else
-    echo(f'# Unable to prepare loadout "{manager.current_loadout_type}", not found\n')
-  end
 end</script>
 					<eventHandlerList />
 				</Script>
