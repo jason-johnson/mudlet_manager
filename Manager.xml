@@ -55,7 +55,7 @@
 				<packageName></packageName>
 				<regex></regex>
 				<Alias isActive="yes" isFolder="no">
-					<name>loadouts add &lt;name&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
+					<name>loadouts set &lt;name&gt; &lt;stance&gt; &lt;wield&gt; (&lt;sheath&gt;)</name>
 					<script>local lo = {
   name = matches[2],
   wield = matches[4],
@@ -63,10 +63,10 @@
   stance = matches[3],
 }
 
-manager.loadouts.add(lo)</script>
+manager.loadouts.set(lo)</script>
 					<command></command>
 					<packageName></packageName>
-					<regex>^\s*loadouts\s+add\s+(\w+)\s+(\w+)\s+(\w+)(\s+(\w+))?\s*$</regex>
+					<regex>^\s*loadouts\s+set\s+(\w+)\s+'(\*|[\w\s:]+)'\s+'([\w\s!:]+)'(\s+'([\w\s:]+)')?\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>loadouts list</name>
@@ -84,7 +84,7 @@ manager.loadouts.add(lo)</script>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>loadouts load &lt;name&gt;</name>
-					<script>manager.loadouts.initialize(matches[2])</script>
+					<script>manager.loadouts.load(matches[2])</script>
 					<command></command>
 					<packageName></packageName>
 					<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
@@ -166,13 +166,7 @@ manager.loadouts.add(lo)</script>
     'name',
     'wield',
     'sheath',
-    'stance',
-    'main_action',
-    'fast_action',
-    'slow_action',
-    'main_action_alt',
-    'fast_action_alt',
-    'slow_action_alt',
+    'stance'
   }
 
 	return manager
@@ -460,7 +454,15 @@ end</script>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Loadouts</name>
 				<packageName></packageName>
-				<script>manager.loadouts = manager.loadouts or {}</script>
+				<script>function initialize_manager_loadouts()
+	local loadouts = {}
+  
+  loadouts.current = {}
+
+	return loadouts
+end
+
+manager.loadouts = manager.loadouts or initialize_manager_loadouts()</script>
 				<eventHandlerList />
 				<Script isActive="yes" isFolder="no">
 					<name>list</name>
@@ -495,9 +497,9 @@ end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>add</name>
+					<name>set</name>
 					<packageName></packageName>
-					<script>function manager.loadouts.add(record)
+					<script>function manager.loadouts.set(record)
   local conn = manager.loadouts.get_conn()
   
   if not conn then return end
@@ -509,14 +511,14 @@ end</script>
   end
   
   local r,err = conn:execute(f[[
-    insert into loadouts(char_name, name, wield, sheath, stance)
+    REPLACE INTO loadouts(char_name, name, wield, sheath, stance)
     values("{manager.name}", "{record.name}", "{record.wield}", {sheath}, "{record.stance}")
   ]])
   
   if r == nil then
     echo(f'# adding loadout failed: {err}\n')
   else
-    echo(f"# loadout: '{record.name}' added\n")
+    echo(f"# loadout: '{record.name}' set\n")
   end
   
   manager.db.commit(conn)
@@ -527,6 +529,8 @@ end</script>
 					<name>clear</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.clear()
+  manager.loadouts.actions.clear()
+  
   local conn = manager.loadouts.get_conn()
   
   if not conn then return end
@@ -539,15 +543,21 @@ end</script>
   end
   
   manager.db.commit(conn)
+  manager.current_loadout = nil
   
   echo("# loadouts cleared\n")
 end</script>
 					<eventHandlerList />
 				</Script>
 				<Script isActive="yes" isFolder="no">
-					<name>initialize</name>
+					<name>load</name>
 					<packageName></packageName>
-					<script>function manager.loadouts.initialize(name)
+					<script>function manager.loadouts.load(name)
+  if manager.current_loadout and manager.current_loadout == name then
+    echo(f'# loadout "{name}" already active\n')
+    return
+  end
+  
   local conn = manager.loadouts.get_conn()
   
   if not conn then return end
@@ -578,9 +588,31 @@ end</script>
 					<name>load_loadout</name>
 					<packageName></packageName>
 					<script>function manager.loadouts.load_loadout(loadout)
-  -- set up other stuff
-  manager.current_loadout = loadout.name
-  -- set DB for current loadout
+  local prev = manager.loadouts.current
+  local lo = manager.util.copy_table(loadout, manager.loadout_fields)
+  
+  local change_stance = loadout.stance ~= '*'
+  local need_wield = loadout.wield ~= '!'
+  local need_sheath = prev and prev.sheath and prev.sheath ~= nil
+  
+  if prev and prev.name and prev.name ~= '' then
+    if change_stance and loadout.stance == prev.stance then
+      change_stance = false
+    end
+    
+    if need_wield and loadout.wield == prev.wield then
+      need_wield = false
+      need_sheath = false
+    end
+  end
+  
+  if change_stance then manager.actions.perform_action(loadout.stance) end
+  if need_sheath then manager.actions.perform_action(prev.sheath) end
+  if need_wield then manager.actions.perform_action(loadout.wield) end
+  
+  manager.loadouts.current = lo
+  manager.current_loadout = lo.name
+  db:set(mydb.char_vars.current_loadout, lo.name, db:eq(mydb.char_vars.name, manager.name))
   
   echo(f"# Loadout '{loadout.name}' loaded\n")
 end</script>
@@ -684,6 +716,27 @@ end</script>
   local conn = manager.db.get_conn(db_name)
   
   return conn
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>clear</name>
+						<packageName></packageName>
+						<script>function manager.loadouts.actions.clear()
+  local conn = manager.loadouts.actions.get_conn()
+  
+  if not conn then return end
+  
+  local r,err = conn:execute(f'delete from loadout_actions where char_name = "{manager.name}"')
+  
+  if r == nil then
+    echo(f'# clearing loadout actions failed: {err}\n')
+    return
+  end
+  
+  manager.db.commit(conn)
+  
+  echo("# loadout actions cleared\n")
 end</script>
 						<eventHandlerList />
 					</Script>
@@ -1617,6 +1670,32 @@ end</script>
 						<eventHandlerList />
 					</Script>
 				</ScriptGroup>
+				<Script isActive="yes" isFolder="no">
+					<name>perform_action</name>
+					<packageName></packageName>
+					<script>function manager.actions.perform_action(action)
+  local act_table = action:split(":")
+  
+  if #act_table &lt; 2 then
+    echo(f'# expected action format of &lt;cmd&gt;:&lt;action&gt;(:&lt;extra&gt;?), got: "{action}"\n')
+    return nil
+  end
+  
+  local weapon = nil
+  local command = nil
+  local enhance = #act_table == 3
+  
+  if act_table[1] == 'e' then
+    expandAlias(act_table[2])
+  elseif act_table[1] == 'c' then
+    send(act_table[2])
+  else
+    echo(string.format('# got unexpected command: "%s"\n', act_table[1]))
+    return nil
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
 			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>DB</name>
