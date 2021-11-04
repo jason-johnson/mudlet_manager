@@ -560,6 +560,11 @@ end</script>
   
   local loadout = manager.loadouts.get(name)
   
+  if not loadout then
+    echo(f'# Loadout "{name}" not found\n')
+    return
+  end
+  
   if skip_actions == nil then
     local prev = manager.loadouts.current
     local change_stance = loadout.stance ~= '*'
@@ -584,6 +589,7 @@ end</script>
   
   manager.loadouts.current = loadout
   manager.current_loadout = loadout.name
+  manager.loadouts.actions.load()
   
   local mydb = db:get_database("char_info")
   db:set(mydb.char_vars.current_loadout, loadout.name, db:eq(mydb.char_vars.name, manager.name))
@@ -642,35 +648,26 @@ end</script>
 				<ScriptGroup isActive="yes" isFolder="yes">
 					<name>Actions</name>
 					<packageName></packageName>
-					<script>manager.loadouts.actions = manager.loadouts.actions or {}</script>
+					<script>function initialize_manager_loadouts_actions()
+	local actions = {}
+  
+  actions.current = {}
+
+	return actions
+end
+
+manager.loadouts.actions = manager.loadouts.actions or initialize_manager_loadouts_actions()</script>
 					<eventHandlerList />
 					<Script isActive="yes" isFolder="no">
 						<name>list</name>
 						<packageName></packageName>
 						<script>function manager.loadouts.actions.list()
-  local conn = manager.loadouts.actions.get_conn()
-  
-  if not conn then return end
-  
-  local any_exist = false
-    
-  local cursor,err = conn:execute(f'select * from loadout_actions where char_name = "{manager.name}" and loadout_name = "{manager.current_loadout}"')
-  
-  if cursor == nil then
-    echo(f'# reading loadout actions failed: {err}\n')
-  end
-  
-  local row = cursor:fetch ({}, "a")
-  
   echo(f'# Loadout: {manager.current_loadout}\n')
-  while row do
-    any_exist = true
-    echo(f'#\taction: {row.name} = {row.value}\n')
-    row = cursor:fetch (row, "a")
-  end
+  
+  local any_exist = manager.loadouts.actions.each(function(row) echo(f'#\taction: {row.name} = {row.value}\n') end)
   
   if not any_exist then
-    echo(f"# no loadout actions found for loadout '{manager.current_loadout}'\n")
+    echo("#\tnone\n")
   end
 end</script>
 						<eventHandlerList />
@@ -741,6 +738,46 @@ end</script>
   manager.db.commit(conn)
   
   echo("# loadout actions cleared\n")
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>each</name>
+						<packageName></packageName>
+						<script>function manager.loadouts.actions.each(fun)
+  local conn = manager.loadouts.actions.get_conn()
+  
+  if not conn then return end
+  
+  local any_exist = false
+    
+  local cursor,err = conn:execute(f'select * from loadout_actions where char_name = "{manager.name}" and loadout_name = "{manager.current_loadout}"')
+  
+  if cursor == nil then
+    echo(f'# reading loadout actions failed: {err}\n')
+  end
+  
+  local row = cursor:fetch ({}, "a")
+  
+  while row do
+    any_exist = true
+    fun(row)
+    row = cursor:fetch (row, "a")
+  end
+  
+  return any_exist
+end</script>
+						<eventHandlerList />
+					</Script>
+					<Script isActive="yes" isFolder="no">
+						<name>load</name>
+						<packageName></packageName>
+						<script>function manager.loadouts.actions.load()
+  local current = {}
+  
+  manager.loadouts.actions.each(function(row) current[row.name] = row.value end)
+  
+  manager.loadouts.actions.current = current
 end</script>
 						<eventHandlerList />
 					</Script>
