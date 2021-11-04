@@ -208,6 +208,7 @@ end</script>
 			name = "",
       description = "",
       current_loadout = "",
+      load_command = "",
       container = "",
 			_unique = { "name" },
 			_violations = "FAIL"
@@ -279,6 +280,11 @@ end</script>
   
   manager.util.copy_fields_to_manager(char_vars, manager.char_fields)
   manager.loadouts.load(manager.current_loadout, true)
+  
+  if manager.load_command and manager.load_command ~= '' then
+    manager.actions.perform_action(manager.load_command)
+  end
+
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -450,6 +456,23 @@ end</script>
 end</script>
 					<eventHandlerList />
 				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>add_load_command</name>
+					<packageName></packageName>
+					<script>function manager.char.add_load_command(character, command)
+  local mydb = db:get_database("char_info")
+  
+	if not manager.char.character_exists(mydb, character) then
+    echo(f'# No such character: {character}\n')
+    return
+  end
+  
+  db:set(mydb.char_vars.load_command, command, db:eq(mydb.char_vars.name, character))
+  
+  echo(f'\n# character "{character}" now has load command "{command}"\n')
+end</script>
+					<eventHandlerList />
+				</Script>
 			</ScriptGroup>
 			<ScriptGroup isActive="yes" isFolder="yes">
 				<name>Loadouts</name>
@@ -582,9 +605,9 @@ end</script>
       end
     end
   
-    if change_stance then manager.actions.perform_action(loadout.stance) end
-    if need_sheath then manager.actions.perform_action(prev.sheath) end
-    if need_wield then manager.actions.perform_action(loadout.wield) end
+    if change_stance then manager.actions.interpret_command(loadout.stance) end
+    if need_sheath then manager.actions.interpret_command(prev.sheath) end
+    if need_wield then manager.actions.interpret_command(loadout.wield) end
   end
   
   manager.loadouts.current = loadout
@@ -1712,9 +1735,9 @@ end</script>
 					</Script>
 				</ScriptGroup>
 				<Script isActive="yes" isFolder="no">
-					<name>perform_action</name>
+					<name>interpret_command</name>
 					<packageName></packageName>
-					<script>function manager.actions.perform_action(action)
+					<script>function manager.actions.interpret_command(action)
   local act_table = action:split(":")
   
   if #act_table &lt; 2 then
@@ -1733,6 +1756,22 @@ end</script>
   else
     echo(string.format('# got unexpected command: "%s"\n', act_table[1]))
     return nil
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>perform_action</name>
+					<packageName></packageName>
+					<script>function manager.actions.perform_action(field)
+  if table.contains(manager.loadouts.actions.current, field) then
+    local cmd = manager.loadouts.actions.current[field]
+    manager.actions.interpret_command(cmd)
+  else
+    echo(f'# No action "{field}" defined:\n')
+    for k,v in pairs(manager.loadouts.actions.current) do
+      echo(f'#\t{k} = {v}\n')
+    end
   end
 end</script>
 					<eventHandlerList />
@@ -1845,22 +1884,6 @@ end</script>
 						<keyCode>46</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP.+Shift (sc sk)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>sc sk</command>
-						<keyCode>16777223</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP.+Ctrl (af)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>af</command>
-						<keyCode>46</keyCode>
-						<keyModifier>603979776</keyModifier>
-					</Key>
 				</KeyGroup>
 				<KeyGroup isActive="yes" isFolder="yes">
 					<name>Actions</name>
@@ -1870,129 +1893,108 @@ end</script>
 					<keyCode>-1</keyCode>
 					<keyModifier>0</keyModifier>
 					<Key isActive="yes" isFolder="no">
-						<name>KP5 (main action)</name>
+						<name>KP5 (action: main)</name>
 						<packageName></packageName>
-						<script>gw.actions.act.perform_action('main_action')</script>
+						<script>manager.actions.perform_action('main_n')</script>
 						<command></command>
 						<keyCode>53</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP5+Ctrl (order followers kill target)</name>
+						<name>KP5+Ctrl (action: main_followers)</name>
 						<packageName></packageName>
-						<script>if gw.actions.wielding.target == nil then
-  echo('# No target\n')
-else
-  send(string.format('say @pets kill %s', gw.actions.wielding.target))
-end</script>
+						<script>manager.actions.perform_action('main_followers')</script>
 						<command></command>
 						<keyCode>53</keyCode>
 						<keyModifier>603979776</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP5+Shift (label target)</name>
+						<name>KP5+Shift (action: main_alt)</name>
 						<packageName></packageName>
-						<script>echo('# Id like to set the target here but not sure how\n')</script>
+						<script>manager.actions.perform_action('main_alt')</script>
 						<command></command>
 						<keyCode>16777227</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP5+Alt (k prev)</name>
+						<name>KP5+Alt  (action: main_prev)</name>
 						<packageName></packageName>
-						<script>gw.actions.targetting.set_prev_target()
-gw.actions.act.perform_action('main_action')</script>
+						<script>manager.actions.perform_action('main_prev')</script>
 						<command></command>
 						<keyCode>53</keyCode>
 						<keyModifier>671088640</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP7 (loadout slot 1)</name>
+						<name>KP7 (action: loadout_1)</name>
 						<packageName></packageName>
-						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[1])</script>
+						<script>manager.actions.perform_action('loadout_1')</script>
 						<command></command>
 						<keyCode>55</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP7+Shift (loadout slot 2)</name>
+						<name>KP7+Shift (action: loadout_2)</name>
 						<packageName></packageName>
-						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[2])</script>
+						<script>manager.actions.perform_action('loadout_2')</script>
 						<command></command>
 						<keyCode>16777232</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP7+Ctrl (loadout slot 3)</name>
+						<name>KP7+Ctrl (action: loadout_alt)</name>
 						<packageName></packageName>
-						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[3])</script>
+						<script>manager.actions.perform_action('loadout_alt')</script>
 						<command></command>
 						<keyCode>55</keyCode>
 						<keyModifier>603979776</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP+ (fast action)</name>
+						<name>KP+ (action: fast_n)</name>
 						<packageName></packageName>
-						<script>gw.actions.act.perform_action('fast_action')</script>
+						<script>manager.actions.perform_action('fast_n')</script>
 						<command></command>
 						<keyCode>43</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP++Ctrl (fast action alt)</name>
+						<name>KP++Ctrl (action: fast_alt)</name>
 						<packageName></packageName>
-						<script>gw.actions.act.perform_action('fast_action_alt')</script>
+						<script>manager.actions.perform_action('fast_alt')</script>
 						<command></command>
 						<keyCode>43</keyCode>
 						<keyModifier>603979776</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP- (slow action)</name>
+						<name>KP+ +Alt (action: fast_n_prev)</name>
 						<packageName></packageName>
-						<script>gw.actions.act.perform_action('slow_action')</script>
+						<script>manager.actions.perform_action('fast_n_prev')</script>
+						<command></command>
+						<keyCode>43</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP- (action: slow_n)</name>
+						<packageName></packageName>
+						<script>manager.actions.perform_action('slow_n')</script>
 						<command></command>
 						<keyCode>45</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP-+Ctrl (slow action alt)</name>
+						<name>KP-+Ctrl (action: slow_alt)</name>
 						<packageName></packageName>
-						<script>gw.actions.act.perform_action('slow_action_alt')</script>
+						<script>manager.actions.perform_action('slow_alt')</script>
 						<command></command>
 						<keyCode>45</keyCode>
 						<keyModifier>603979776</keyModifier>
 					</Key>
-				</KeyGroup>
-				<KeyGroup isActive="no" isFolder="yes">
-					<name>Draw</name>
-					<packageName></packageName>
-					<script></script>
-					<command></command>
-					<keyCode>-1</keyCode>
-					<keyModifier>0</keyModifier>
 					<Key isActive="yes" isFolder="no">
-						<name>KP0 (switch loadout slot 1)</name>
+						<name>KP-+Alt (action: slow_n_prev)</name>
 						<packageName></packageName>
-						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[1])</script>
+						<script>manager.actions.perform_action('slow_n_prev')</script>
 						<command></command>
-						<keyCode>48</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP0+Shift (switch loadout slot 2)</name>
-						<packageName></packageName>
-						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[2])</script>
-						<command></command>
-						<keyCode>16777222</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP0+Ctrl (switch loadout slot 3)</name>
-						<packageName></packageName>
-						<script>gw.actions.wielding.switch_loadout(gw.actions.wielding.loadout_slots[3])</script>
-						<command></command>
-						<keyCode>48</keyCode>
-						<keyModifier>603979776</keyModifier>
+						<keyCode>45</keyCode>
+						<keyModifier>671088640</keyModifier>
 					</Key>
 				</KeyGroup>
 				<KeyGroup isActive="yes" isFolder="yes">
@@ -2002,63 +2004,7 @@ gw.actions.act.perform_action('main_action')</script>
 					<command></command>
 					<keyCode>33554431</keyCode>
 					<keyModifier>0</keyModifier>
-					<Key isActive="yes" isFolder="no">
-						<name>KP2 (walk backwards)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>fb</command>
-						<keyCode>50</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP3 (duck)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>fd</command>
-						<keyCode>51</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP4l (walk left)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>fl</command>
-						<keyCode>52</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP6+Ctrl (walk right)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>fr</command>
-						<keyCode>54</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP9+Ctrl (jump)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>fj</command>
-						<keyCode>57</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP8+Ctrl (forward)</name>
-						<packageName></packageName>
-						<script></script>
-						<command>ff</command>
-						<keyCode>56</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
 				</KeyGroup>
-			</KeyGroup>
-			<KeyGroup isActive="no" isFolder="yes">
-				<name>Style</name>
-				<packageName></packageName>
-				<script></script>
-				<command></command>
-				<keyCode>-1</keyCode>
-				<keyModifier>0</keyModifier>
 			</KeyGroup>
 		</KeyGroup>
 	</KeyPackage>
