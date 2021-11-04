@@ -278,7 +278,7 @@ end</script>
   local char_vars = manager.initialization.get_char_vars(mydb, character)
   
   manager.util.copy_fields_to_manager(char_vars, manager.char_fields)
-  -- manager.cache.build_loadouts_cache(char_vars)
+  manager.loadouts.load(manager.current_loadout, true)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -552,12 +552,48 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>load</name>
 					<packageName></packageName>
-					<script>function manager.loadouts.load(name)
-  if manager.current_loadout and manager.current_loadout == name then
+					<script>function manager.loadouts.load(name, skip_actions)
+  if skip_actions == nil and manager.current_loadout and manager.current_loadout == name then
     echo(f'# loadout "{name}" already active\n')
     return
   end
   
+  local loadout = manager.loadouts.get(name)
+  
+  if skip_actions == nil then
+    local prev = manager.loadouts.current
+    local change_stance = loadout.stance ~= '*'
+    local need_wield = loadout.wield ~= '!'
+    local need_sheath = prev and prev.sheath and prev.sheath ~= nil
+  
+    if prev and prev.name and prev.name ~= '' then
+      if change_stance and loadout.stance == prev.stance then
+        change_stance = false
+      end
+    
+      if need_wield and loadout.wield == prev.wield then
+        need_wield = false
+        need_sheath = false
+      end
+    end
+  
+    if change_stance then manager.actions.perform_action(loadout.stance) end
+    if need_sheath then manager.actions.perform_action(prev.sheath) end
+    if need_wield then manager.actions.perform_action(loadout.wield) end
+  end
+  
+  manager.loadouts.current = loadout
+  manager.current_loadout = loadout.name
+  
+  local mydb = db:get_database("char_info")
+  db:set(mydb.char_vars.current_loadout, loadout.name, db:eq(mydb.char_vars.name, manager.name))
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>get</name>
+					<packageName></packageName>
+					<script>function manager.loadouts.get(name)
   local conn = manager.loadouts.get_conn()
   
   if not conn then return end
@@ -569,7 +605,7 @@ end</script>
   end
   
   local row = cursor:fetch ({}, "a")
-  
+  local result = nil
   local already_loaded = false
   
   while row do
@@ -577,44 +613,12 @@ end</script>
       echo(f'# Impossible: loadout with name "{name}" has multiple records\n')
       return
     end
-    manager.loadouts.load_loadout(row)
+    result = manager.util.copy_table(row, manager.loadout_fields)
     already_loaded = true
     row = cursor:fetch (row, "a")
   end
-end</script>
-					<eventHandlerList />
-				</Script>
-				<Script isActive="yes" isFolder="no">
-					<name>load_loadout</name>
-					<packageName></packageName>
-					<script>function manager.loadouts.load_loadout(loadout)
-  local prev = manager.loadouts.current
-  local lo = manager.util.copy_table(loadout, manager.loadout_fields)
   
-  local change_stance = loadout.stance ~= '*'
-  local need_wield = loadout.wield ~= '!'
-  local need_sheath = prev and prev.sheath and prev.sheath ~= nil
-  
-  if prev and prev.name and prev.name ~= '' then
-    if change_stance and loadout.stance == prev.stance then
-      change_stance = false
-    end
-    
-    if need_wield and loadout.wield == prev.wield then
-      need_wield = false
-      need_sheath = false
-    end
-  end
-  
-  if change_stance then manager.actions.perform_action(loadout.stance) end
-  if need_sheath then manager.actions.perform_action(prev.sheath) end
-  if need_wield then manager.actions.perform_action(loadout.wield) end
-  
-  manager.loadouts.current = lo
-  manager.current_loadout = lo.name
-  db:set(mydb.char_vars.current_loadout, lo.name, db:eq(mydb.char_vars.name, manager.name))
-  
-  echo(f"# Loadout '{loadout.name}' loaded\n")
+  return result
 end</script>
 					<eventHandlerList />
 				</Script>
