@@ -959,7 +959,7 @@ end</script>
   if act_table[1] == 'e' then
     expandAlias(act_table[2], manager.debug)
   elseif act_table[1] == 'c' then
-    send(act_table[2], manager.debug)
+    send(act_table[2])
   else
     echo(string.format('# got unexpected command: "%s"\n', act_table[1]))
     return nil
@@ -1813,6 +1813,16 @@ manager.misc.announce_variable('user mapper', manager.doors.use_mapper, true)</s
 					<keyModifier>0</keyModifier>
 				</Key>
 			</KeyGroup>
+			<Key isActive="yes" isFolder="no">
+				<name>Manager debugging</name>
+				<packageName></packageName>
+				<script>manager.debug = not manager.debug
+
+manager.misc.announce_variable('manager.debug', manager.debug, true)</script>
+				<command></command>
+				<keyCode>16777275</keyCode>
+				<keyModifier>0</keyModifier>
+			</Key>
 		</KeyGroup>
 	</KeyPackage>
 	<HelpPackage>
