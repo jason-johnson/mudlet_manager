@@ -180,6 +180,15 @@ manager.loadouts.set(lo)</script>
 					<packageName></packageName>
 					<regex>^\s*targ(\s+([.\w]+))?\s*$</regex>
 				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>k &lt;target&gt;</name>
+					<script>local target = matches[2]
+manager.targetting.set_target(target)
+manager.targetting.target_action('kill')</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*k\s+(\S+)\s*$</regex>
+				</Alias>
 			</AliasGroup>
 		</AliasGroup>
 	</AliasPackage>
@@ -913,9 +922,13 @@ end</script>
 				<Script isActive="yes" isFolder="no">
 					<name>announce_variable</name>
 					<packageName></packageName>
-					<script>function manager.misc.announce_variable(name, value)
+					<script>function manager.misc.announce_variable(name, value, is_boolean)
   if not value then
-    value = "&lt;nil&gt;"
+    if is_boolean then
+      value = "false"
+    else
+      value = "&lt;nil&gt;"
+    end
   end
   
 	echo(f'# {name} now set to: "{value}"\n')
@@ -958,14 +971,26 @@ end</script>
 					<name>perform_action</name>
 					<packageName></packageName>
 					<script>function manager.actions.perform_action(field)
+  local cmd = manager.actions.find_action(field)
+  if cmd then
+    manager.actions.interpret_command(cmd)
+  end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>find_action</name>
+					<packageName></packageName>
+					<script>function manager.actions.find_action(field)
   if table.contains(manager.loadouts.actions.current, field) then
     local cmd = manager.loadouts.actions.current[field]
-    manager.actions.interpret_command(cmd)
+    return cmd
   else
     echo(f'# No action "{field}" defined:\n')
     for k,v in pairs(manager.loadouts.actions.current) do
       echo(f'#\t{k} = {v}\n')
     end
+    return nil
   end
 end</script>
 					<eventHandlerList />
@@ -1089,6 +1114,109 @@ end</script>
 					<eventHandlerList />
 				</Script>
 			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Doors</name>
+				<packageName></packageName>
+				<script>function initialize_manager_doors()
+	local doors = {}
+
+  doors.use_mapper = true
+	
+	doors.door_names = {
+		["north"] = "exit n",
+		["south"] = "exit s",
+		["east"] = "exit e",
+		["west"] = "exit w",
+		["up"] = "exit u",
+		["down"] = "exit d"
+	}
+
+	return doors
+end
+
+manager.doors = manager.doors or initialize_manager_doors()</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>set_door_name</name>
+					<packageName></packageName>
+					<script>function manager.doors.set_door_name(name, value)
+	manager.doors.door_names[name] = value
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>get_door_name</name>
+					<packageName></packageName>
+					<script>function manager.doors.get_door_name(name)
+	return manager.doors.door_names[name]
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>act_door_name</name>
+					<packageName></packageName>
+					<script>function manager.doors.act_door_name(act, alt_act, name)
+  if manager.doors.use_mapper
+	then
+	  expandAlias(f'{alt_act} {string.sub(name, 1, 1)}')
+	else
+	  local door_name = manager.doors.get_door_name(name)
+		send(f'{act} {door_name}')
+	end
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>open_door</name>
+					<packageName></packageName>
+					<script>function manager.doors.open_door(name)
+  manager.doors.act_door_name("op", "_open", name)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>close_door</name>
+					<packageName></packageName>
+					<script>function manager.doors.close_door(name)
+	manager.doors.act_door_name("cl", "_close", name)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>pick_door</name>
+					<packageName></packageName>
+					<script>function manager.doors.pick_door(name)
+	manager.doors.act_door_name("pi", "_pick", name)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>lock_door</name>
+					<packageName></packageName>
+					<script>function manager.doors.lock_door(name)
+	manager.doors.act_door_name("lock", "_lock", name)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>unlock_door</name>
+					<packageName></packageName>
+					<script>function manager.doors.unlock_door(name)
+	manager.doors.act_door_name("unl", "_unlock", name)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>special_door</name>
+					<packageName></packageName>
+					<script>function manager.doors.special_door(name)
+  local cmd = manager.actions.find_action('door_special') or 'exit'
+  local map_cmd = manager.actions.find_action('door_special_mapper') or '_exit'
+	manager.doors.act_door_name(cmd, map_cmd, name)
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
 		</ScriptGroup>
 	</ScriptPackage>
 	<KeyPackage>
@@ -1100,164 +1228,590 @@ end</script>
 			<keyCode>-1</keyCode>
 			<keyModifier>0</keyModifier>
 			<KeyGroup isActive="yes" isFolder="yes">
-				<name>General</name>
+				<name>Actions</name>
 				<packageName></packageName>
 				<script></script>
 				<command></command>
 				<keyCode>-1</keyCode>
 				<keyModifier>0</keyModifier>
+				<Key isActive="yes" isFolder="no">
+					<name>KP5 (action: main)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('main_n')</script>
+					<command></command>
+					<keyCode>53</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP5+Ctrl (action: main_followers)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('main_followers')</script>
+					<command></command>
+					<keyCode>53</keyCode>
+					<keyModifier>603979776</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP5+Shift (action: main_alt)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('main_alt')</script>
+					<command></command>
+					<keyCode>16777227</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP5+Alt  (action: main_prev)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('main_prev')</script>
+					<command></command>
+					<keyCode>53</keyCode>
+					<keyModifier>671088640</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP7 (action: loadout_1)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('loadout_1')</script>
+					<command></command>
+					<keyCode>55</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP7+Shift (action: loadout_2)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('loadout_2')</script>
+					<command></command>
+					<keyCode>16777232</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP7+Ctrl (action: loadout_alt)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('loadout_alt')</script>
+					<command></command>
+					<keyCode>55</keyCode>
+					<keyModifier>603979776</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP+ (action: fast_n)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('fast_n')</script>
+					<command></command>
+					<keyCode>43</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP++Ctrl (action: fast_alt)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('fast_alt')</script>
+					<command></command>
+					<keyCode>43</keyCode>
+					<keyModifier>603979776</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP+ +Alt (action: fast_n_prev)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('fast_n_prev')</script>
+					<command></command>
+					<keyCode>43</keyCode>
+					<keyModifier>671088640</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP- (action: slow_n)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('slow_n')</script>
+					<command></command>
+					<keyCode>45</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP-+Ctrl (action: slow_alt)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('slow_alt')</script>
+					<command></command>
+					<keyCode>45</keyCode>
+					<keyModifier>603979776</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP-+Alt (action: slow_n_prev)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('slow_n_prev')</script>
+					<command></command>
+					<keyCode>45</keyCode>
+					<keyModifier>671088640</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP1 (action: mood_n)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('mood_n')</script>
+					<command></command>
+					<keyCode>49</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP1+Shift (action: mood_shift)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('mood_shift')</script>
+					<command></command>
+					<keyCode>16777233</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+			</KeyGroup>
+			<KeyGroup isActive="yes" isFolder="yes">
+				<name>Directions</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>-1</keyCode>
+				<keyModifier>0</keyModifier>
+				<Key isActive="yes" isFolder="no">
+					<name>KP8 (north)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>n</command>
+					<keyCode>56</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP2 (south)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>s</command>
+					<keyCode>50</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP6 (east)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>e</command>
+					<keyCode>54</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP4 (west)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>w</command>
+					<keyCode>52</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP9 (up)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>u</command>
+					<keyCode>57</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP3 (down)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>d</command>
+					<keyCode>51</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP0 (flee)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>f</command>
+					<keyCode>48</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+			</KeyGroup>
+			<KeyGroup isActive="yes" isFolder="yes">
+				<name>Status</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>-1</keyCode>
+				<keyModifier>0</keyModifier>
+				<Key isActive="yes" isFolder="no">
+					<name>KP. (score)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>sc</command>
+					<keyCode>46</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP.+Shift (stat)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>stat</command>
+					<keyCode>16777223</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP.+Ctrl (info)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>inf</command>
+					<keyCode>46</keyCode>
+					<keyModifier>603979776</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP.+Meta (prac)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>prac</command>
+					<keyCode>46</keyCode>
+					<keyModifier>805306368</keyModifier>
+				</Key>
+			</KeyGroup>
+			<KeyGroup isActive="yes" isFolder="yes">
+				<name>Doors</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>16777220</keyCode>
+				<keyModifier>0</keyModifier>
 				<KeyGroup isActive="yes" isFolder="yes">
-					<name>Score</name>
+					<name>KP2 (south)</name>
 					<packageName></packageName>
 					<script></script>
 					<command></command>
 					<keyCode>-1</keyCode>
 					<keyModifier>0</keyModifier>
 					<Key isActive="yes" isFolder="no">
-						<name>KP. (sc)</name>
+						<name>KP2+Ctrl (open door south)</name>
 						<packageName></packageName>
-						<script></script>
-						<command>sc</command>
-						<keyCode>46</keyCode>
+						<script>manager.doors.open_door("south")</script>
+						<command></command>
+						<keyCode>50</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2+Alt (close door south)</name>
+						<packageName></packageName>
+						<script>manager.doors.close_door("south")</script>
+						<command></command>
+						<keyCode>50</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2+Shift+Ctrl (unlock door south)</name>
+						<packageName></packageName>
+						<script>manager.doors.unlock_door("south")</script>
+						<command></command>
+						<keyCode>16777237</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2+Shift+Alt (lock door south)</name>
+						<packageName></packageName>
+						<script>manager.doors.lock_door("south")</script>
+						<command></command>
+						<keyCode>16777237</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2+Shift (pick door south)</name>
+						<packageName></packageName>
+						<script>manager.doors.pick_door("south")</script>
+						<command></command>
+						<keyCode>16777237</keyCode>
 						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP2+Ctrl+Alt (rock door south)</name>
+						<packageName></packageName>
+						<script>manager.doors.special_door("south")</script>
+						<command></command>
+						<keyCode>50</keyCode>
+						<keyModifier>738197504</keyModifier>
 					</Key>
 				</KeyGroup>
 				<KeyGroup isActive="yes" isFolder="yes">
-					<name>Actions</name>
+					<name>KP3 (down)</name>
 					<packageName></packageName>
 					<script></script>
 					<command></command>
 					<keyCode>-1</keyCode>
 					<keyModifier>0</keyModifier>
 					<Key isActive="yes" isFolder="no">
-						<name>KP5 (action: main)</name>
+						<name>KP3+Ctrl (open door down)</name>
 						<packageName></packageName>
-						<script>manager.actions.perform_action('main_n')</script>
+						<script>manager.doors.open_door("down")</script>
 						<command></command>
-						<keyCode>53</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP5+Ctrl (action: main_followers)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('main_followers')</script>
-						<command></command>
-						<keyCode>53</keyCode>
+						<keyCode>51</keyCode>
 						<keyModifier>603979776</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP5+Shift (action: main_alt)</name>
+						<name>KP3+Alt (close door down)</name>
 						<packageName></packageName>
-						<script>manager.actions.perform_action('main_alt')</script>
+						<script>manager.doors.close_door("down")</script>
 						<command></command>
-						<keyCode>16777227</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP5+Alt  (action: main_prev)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('main_prev')</script>
-						<command></command>
-						<keyCode>53</keyCode>
+						<keyCode>51</keyCode>
 						<keyModifier>671088640</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP7 (action: loadout_1)</name>
+						<name>KP3+Shift+Ctrl (unlock door down)</name>
 						<packageName></packageName>
-						<script>manager.actions.perform_action('loadout_1')</script>
+						<script>manager.doors.unlock_door("down")</script>
 						<command></command>
-						<keyCode>55</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP7+Shift (action: loadout_2)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('loadout_2')</script>
-						<command></command>
-						<keyCode>16777232</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP7+Ctrl (action: loadout_alt)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('loadout_alt')</script>
-						<command></command>
-						<keyCode>55</keyCode>
+						<keyCode>16777239</keyCode>
 						<keyModifier>603979776</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP+ (action: fast_n)</name>
+						<name>KP3+Shift+Alt (lock door down)</name>
 						<packageName></packageName>
-						<script>manager.actions.perform_action('fast_n')</script>
+						<script>manager.doors.lock_door("down")</script>
 						<command></command>
-						<keyCode>43</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP++Ctrl (action: fast_alt)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('fast_alt')</script>
-						<command></command>
-						<keyCode>43</keyCode>
-						<keyModifier>603979776</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP+ +Alt (action: fast_n_prev)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('fast_n_prev')</script>
-						<command></command>
-						<keyCode>43</keyCode>
+						<keyCode>16777239</keyCode>
 						<keyModifier>671088640</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP- (action: slow_n)</name>
+						<name>KP3+Shift (pick door down)</name>
 						<packageName></packageName>
-						<script>manager.actions.perform_action('slow_n')</script>
+						<script>manager.doors.pick_door("down")</script>
 						<command></command>
-						<keyCode>45</keyCode>
+						<keyCode>16777239</keyCode>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP-+Ctrl (action: slow_alt)</name>
+						<name>KP3+Ctrl+Alt (rock door down)</name>
 						<packageName></packageName>
-						<script>manager.actions.perform_action('slow_alt')</script>
+						<script>manager.doors.special_door("down")</script>
 						<command></command>
-						<keyCode>45</keyCode>
-						<keyModifier>603979776</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP-+Alt (action: slow_n_prev)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('slow_n_prev')</script>
-						<command></command>
-						<keyCode>45</keyCode>
-						<keyModifier>671088640</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP1 (action: mood_n)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('mood_n')</script>
-						<command></command>
-						<keyCode>49</keyCode>
-						<keyModifier>536870912</keyModifier>
-					</Key>
-					<Key isActive="yes" isFolder="no">
-						<name>KP1+Shift (action: mood_shift)</name>
-						<packageName></packageName>
-						<script>manager.actions.perform_action('mood_shift')</script>
-						<command></command>
-						<keyCode>16777233</keyCode>
-						<keyModifier>536870912</keyModifier>
+						<keyCode>51</keyCode>
+						<keyModifier>738197504</keyModifier>
 					</Key>
 				</KeyGroup>
 				<KeyGroup isActive="yes" isFolder="yes">
-					<name>Movement</name>
+					<name>KP4 (west)</name>
 					<packageName></packageName>
 					<script></script>
 					<command></command>
-					<keyCode>33554431</keyCode>
+					<keyCode>-1</keyCode>
 					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Ctrl (open door west)</name>
+						<packageName></packageName>
+						<script>manager.doors.open_door("west")</script>
+						<command></command>
+						<keyCode>52</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Alt (close door west)</name>
+						<packageName></packageName>
+						<script>manager.doors.close_door("west")</script>
+						<command></command>
+						<keyCode>52</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Shift+Ctrl (unlock door west)</name>
+						<packageName></packageName>
+						<script>manager.doors.unlock_door("west")</script>
+						<command></command>
+						<keyCode>16777234</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Shift+Alt (lock door west)</name>
+						<packageName></packageName>
+						<script>manager.doors.lock_door("west")</script>
+						<command></command>
+						<keyCode>16777234</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Shift (pick door west)</name>
+						<packageName></packageName>
+						<script>manager.doors.pick_door("west")</script>
+						<command></command>
+						<keyCode>16777234</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP4+Ctrl+Alt (rock door west)</name>
+						<packageName></packageName>
+						<script>manager.doors.special_door("west")</script>
+						<command></command>
+						<keyCode>52</keyCode>
+						<keyModifier>738197504</keyModifier>
+					</Key>
 				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>KP6 (east)</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Ctrl (open door east)</name>
+						<packageName></packageName>
+						<script>manager.doors.open_door("east")</script>
+						<command></command>
+						<keyCode>54</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Alt (close door east)</name>
+						<packageName></packageName>
+						<script>manager.doors.close_door("east")</script>
+						<command></command>
+						<keyCode>54</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Shift+Ctrl (unlock door east)</name>
+						<packageName></packageName>
+						<script>manager.doors.unlock_door("east")</script>
+						<command></command>
+						<keyCode>16777236</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Shift+Alt (lock door east)</name>
+						<packageName></packageName>
+						<script>manager.doors.lock_door("east")</script>
+						<command></command>
+						<keyCode>16777236</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Shift (pick door east)</name>
+						<packageName></packageName>
+						<script>manager.doors.pick_door("east")</script>
+						<command></command>
+						<keyCode>16777236</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP6+Ctrl+Alt (rock door east)</name>
+						<packageName></packageName>
+						<script>manager.doors.special_door("east")</script>
+						<command></command>
+						<keyCode>54</keyCode>
+						<keyModifier>738197504</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>KP8 (north)</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Ctrl (open door north)</name>
+						<packageName></packageName>
+						<script>manager.doors.open_door("north")</script>
+						<command></command>
+						<keyCode>56</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Alt (close door north)</name>
+						<packageName></packageName>
+						<script>manager.doors.close_door("north")</script>
+						<command></command>
+						<keyCode>56</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Shift+Ctrl (unlock door north)</name>
+						<packageName></packageName>
+						<script>manager.doors.unlock_door("north")</script>
+						<command></command>
+						<keyCode>16777235</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Shift+Alt (lock door north)</name>
+						<packageName></packageName>
+						<script>manager.doors.lock_door("north")</script>
+						<command></command>
+						<keyCode>16777235</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Shift (pick door north)</name>
+						<packageName></packageName>
+						<script>manager.doors.pick_door("north")</script>
+						<command></command>
+						<keyCode>16777235</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP8+Ctrl+Alt (rock door north)</name>
+						<packageName></packageName>
+						<script>manager.doors.special_door("north")</script>
+						<command></command>
+						<keyCode>56</keyCode>
+						<keyModifier>738197504</keyModifier>
+					</Key>
+				</KeyGroup>
+				<KeyGroup isActive="yes" isFolder="yes">
+					<name>KP9 (up)</name>
+					<packageName></packageName>
+					<script></script>
+					<command></command>
+					<keyCode>-1</keyCode>
+					<keyModifier>0</keyModifier>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Ctrl (open door up)</name>
+						<packageName></packageName>
+						<script>manager.doors.open_door("up")</script>
+						<command></command>
+						<keyCode>57</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Alt (close door up)</name>
+						<packageName></packageName>
+						<script>manager.doors.close_door("up")</script>
+						<command></command>
+						<keyCode>57</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Shift+Ctrl (unlock door up)</name>
+						<packageName></packageName>
+						<script>manager.doors.unlock_door("up")</script>
+						<command></command>
+						<keyCode>16777238</keyCode>
+						<keyModifier>603979776</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Shift+Alt (lock door up)</name>
+						<packageName></packageName>
+						<script>manager.doors.lock_door("up")</script>
+						<command></command>
+						<keyCode>16777238</keyCode>
+						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Shift (pick door up)</name>
+						<packageName></packageName>
+						<script>manager.doors.pick_door("up")</script>
+						<command></command>
+						<keyCode>16777238</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP9+Ctrl+Alt (rock door up)</name>
+						<packageName></packageName>
+						<script>manager.doors.special_door("up")</script>
+						<command></command>
+						<keyCode>57</keyCode>
+						<keyModifier>738197504</keyModifier>
+					</Key>
+				</KeyGroup>
+				<Key isActive="yes" isFolder="no">
+					<name>F4 (toggle mmapper doors)</name>
+					<packageName></packageName>
+					<script>manager.doors.use_mapper = not manager.doors.use_mapper
+
+manager.misc.announce_variable('user mapper', manager.doors.use_mapper, true)</script>
+					<command></command>
+					<keyCode>16777267</keyCode>
+					<keyModifier>0</keyModifier>
+				</Key>
 			</KeyGroup>
 		</KeyGroup>
 	</KeyPackage>
