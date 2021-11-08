@@ -90,11 +90,11 @@ manager.loadouts.set(lo)</script>
 					<regex>^\s*loadouts\s+load\s+(\w+)\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
-					<name>loadout actions set &lt;main|fast|slow&gt;_&lt;n|alt&gt; &lt;action name&gt;</name>
+					<name>loadout actions set &lt;action name&gt; &lt;action&gt;</name>
 					<script>manager.loadouts.actions.set(matches[2], matches[3])</script>
 					<command></command>
 					<packageName></packageName>
-					<regex>^\s*loadout\s+actions\s+set\s+(main_n|main_alt|fast_n|fast_alt|slow_n|slow_alt)\s+([\w\s:]+)\s*$</regex>
+					<regex>^\s*loadout\s+actions\s+set\s+(\S+)\s+([\w\s:]+)\s*$</regex>
 				</Alias>
 				<Alias isActive="yes" isFolder="no">
 					<name>loadout actions list</name>
@@ -145,6 +145,41 @@ manager.loadouts.set(lo)</script>
 					<packageName></packageName>
 					<regex>^\s*characters\s+default\s+(\w+)\s*$</regex>
 				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>characters loadcmd &lt;char&gt; &lt;command&gt;</name>
+					<script>manager.char.add_load_command(matches[2], matches[3])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*characters\s+loadcmd\s+(\w+)\s+(.+)\s*$</regex>
+				</Alias>
+			</AliasGroup>
+			<AliasGroup isActive="yes" isFolder="yes">
+				<name>Targetting</name>
+				<script></script>
+				<command></command>
+				<packageName></packageName>
+				<regex></regex>
+				<Alias isActive="yes" isFolder="no">
+					<name>prev_target_action</name>
+					<script>manager.targetting.prev_target_action(matches[2])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*prev_target_action\s+(.*)\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>target_action</name>
+					<script>manager.targetting.target_action(matches[2])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*target_action\s+(.*)\s*$</regex>
+				</Alias>
+				<Alias isActive="yes" isFolder="no">
+					<name>targ &lt;target&gt; (set target)</name>
+					<script>manager.targetting.set_target(matches[3])</script>
+					<command></command>
+					<packageName></packageName>
+					<regex>^\s*targ(\s+([.\w]+))?\s*$</regex>
+				</Alias>
 			</AliasGroup>
 		</AliasGroup>
 	</AliasPackage>
@@ -160,6 +195,7 @@ manager.loadouts.set(lo)</script>
     'name',
     'current_loadout',
     'container',
+    'load_command',
   }
   
   manager.loadout_fields = {
@@ -168,6 +204,8 @@ manager.loadouts.set(lo)</script>
     'sheath',
     'stance'
   }
+  
+  manager.debug = false
 
 	return manager
 end
@@ -282,7 +320,7 @@ end</script>
   manager.loadouts.load(manager.current_loadout, true)
   
   if manager.load_command and manager.load_command ~= '' then
-    manager.actions.perform_action(manager.load_command)
+    manager.actions.interpret_command(manager.load_command)
   end
 
 end</script>
@@ -718,6 +756,8 @@ end</script>
   end
   
   manager.db.commit(conn)
+  
+  manager.loadouts.actions.current[name] = value
 end</script>
 						<eventHandlerList />
 					</Script>
@@ -878,7 +918,7 @@ end</script>
     value = "&lt;nil&gt;"
   end
   
-	echo(f'# {name} now set to: {value}\n')
+	echo(f'# {name} now set to: "{value}"\n')
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -888,852 +928,6 @@ end</script>
 				<packageName></packageName>
 				<script>manager.actions = manager.actions or {}</script>
 				<eventHandlerList />
-				<ScriptGroup isActive="yes" isFolder="yes">
-					<name>Wielding</name>
-					<packageName></packageName>
-					<script>function initialize_loadouts_actions_wielding()
-	local wielding = {}
-
-	wielding.left_hand = nil
-	wielding.right_hand = nil
-  wielding.current_loadout = nil
-  wielding.style = nil
-  wielding.main_action = nil
-  wielding.fast_action = nil
-  wielding.slow_action = nil
-  wielding.main_action_alt = nil
-  wielding.fast_action_alt = nil
-  wielding.slow_action_alt = nil
-  wielding.sheathable = false
-  
-  wielding.loadout_slots = {}
-  
-  wielding.weapon_map = {
-    longsword = "sword",
-    broadsword = "sword",
-    bastard = "sword",
-    greatsword = "sword",
-    shortsword = "sword",
-    scimitar = "curvedsword",
-    falchion = "curvedsword",
-    sabre = "curvedsword",
-    rapier = "sword",
-    dagger = "dagger",
-    sacrificial = "dagger",
-    kris = "dagger",
-    stiletto = "dagger",
-    gauche = "dagger",
-    swordbreaker = "dagger",
-    knife = "dagger",
-    throwing = "dagger",
-    shuriken = "throwing_knife",
-    butterfly = "martial_dagger",
-    tiger = "fist_dagger",        -- defend, high strike, medium strike, low strike, whirl
-    katar = "fist_dagger",
-    katana = "samurai_sword",
-    wakizashi = "samurai_sword",
-    tanto = "dagger",
-    ninjatou = "ninjatou",
-    ninjatous = "ninjatou",
-    battleaxe = "axe",
-    greataxe = "axe",
-    hand = "throwing_axe",
-    kama = "throwing_axe",
-    throwingaxe = "throwing_axe",
-    tower = "big_shield",
-    kite = "big_shield",
-    target = "shield",            -- defend, bash, high, medium, low
-    crescent = "shield",
-    buckler = "buckler",          -- defend, bash, head, face, chest, groin
-    cudgel = "club",
-    mace = "club",
-    war = "club",
-    maul = "club",
-    shortbow = "bow",
-    composite = "bow",
-    longbow = "bow",
-    crossbow = "bow",
-    net = "net",
-    whip = "whip",                -- pummel, lash, crack, whirl
-    star = "flail",
-    halberd = "polearm",
-    naginata = "polearm",
-    spear = "spear_weapon",
-    trident = "spear_weapon",
-    quarterstaff = "staff",
-    lance = "lance",              -- raise, lower, discard
-    wand = "wand",                 -- flick, gesture, point, wave
-    magic = "magic",
-    ['2unarmed'] = 'unarmed',
-    unarmed = 'unarmed',
-  }
-
-	return wielding
-end
-
-manager.actions.wielding = manager.actions.wielding or initialize_loadouts_actions_wielding()</script>
-					<eventHandlerList />
-					<Script isActive="yes" isFolder="no">
-						<name>sheath_all</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.sheath_all()
-	if manager.actions.wielding.sheathable then
-		send("sheath all")
-	end
-  
-  if manager.actions.wielding.right_hand == "magic" or manager.actions.wielding.left_hand == "magic" then
-    send('magic')
-  end
-  
-  if manager.actions.wielding.left_hand == "tower" or manager.actions.wielding.left_hand == "kite" then
-    send("lr")
-  end
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>add_loadout</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.add_loadout(name, right_hand, left_hand, style)
-  local mydb = db:get_database("char_info")
-  
-	local r, err = db:add(mydb.loadout, {
-    name = name,
-    left_hand = left_hand,
-    right_hand = right_hand,
-    style = style,
-    main_action = nil,
-    fast_action = nil,
-    slow_action = nil,
-    main_action_alt = nil,
-    fast_action_alt = nil,
-    slow_action_alt = nil
-  })
-  
-  if not r then
-    echo("# error: " .. err .. "\n")
-  else
-    echo("# loadout: '" .. name .. "' added\n")
-  end
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>draw_loadout</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.draw_loadout(new_style)
-
-  if new_style ~= 'any' and new_style ~= gw.actions.wielding.style then
-    send('style ' .. new_style)
-    gw.actions.wielding.style = new_style
-  end
-  
-  local weapon = gw.actions.wielding.right_hand
-  
-  if weapon == "lockpicks" then
-    gw.actions.wielding.wield_lockpicks()
-    return
-  end
-  
-  if gw.actions.wielding.is_bow(weapon) == "bow" then
-    gw.actions.wielding.wield_bow()
-    return
-  end
-  
-  gw.actions.wielding.draw_hand(weapon)
-  
-  if gw.actions.wielding.left_hand and #gw.actions.wielding.left_hand ~= 0 then
-    if gw.actions.wielding.left_hand ==  weapon then
-      send("la")
-    else
-      gw.actions.wielding.draw_hand(gw.actions.wielding.left_hand)
-    end
-  end
-  
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>switch_loadout</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.switch_loadout(name)
-  if manager.actions.wielding.current_loadout == name then
-    echo("# loadout '" .. name .. "' already loaded\n")
-    return
-  end
-
-	local mydb = db:get_database("char_info")
-  
-  manager.actions.wielding.sheath_all()
-  
-  local new_style = manager.actions.wielding.set_loadout(mydb, name)
-  db:set(mydb.char_vars.current_loadout, name, db:eq(mydb.char_vars.name, manager.initialization.character))
-  manager.actions.wielding.current_loadout = name
-  
-  manager.actions.wielding.draw_loadout(new_style)
-  
-  manager.misc.announce_variable("loadout", name)
-  
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>get_loadout</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.get_loadout(mydb, name)
-  local loadout = db:fetch(mydb.loadout, db:eq(mydb.loadout.name, name))
-  
-  if #loadout == 0 then
-    return nil
-  end
-  
-  return loadout[1]
-
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>set_loadout</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.set_loadout(mydb, name)
-  local loadout = manager.actions.wielding.get_loadout(mydb, name)
-  
-  if loadout == nil then
-    echo("# no loadout found called: " .. name .. "\n")
-    return
-  end
-  
-  local rh_weapon = loadout.right_hand
-  
-  if string.starts(rh_weapon, "2") then
-    rh_weapon = string.sub(rh_weapon, 2)
-  end
-  
-  gw.actions.wielding.sheathable = gw.actions.wielding.is_sheathable(rh_weapon) or gw.actions.wielding.is_sheathable(loadout.left_hand)
-  gw.actions.wielding.right_hand = loadout.right_hand
-  gw.actions.wielding.left_hand = loadout.left_hand
-  gw.actions.wielding.main_action = loadout.main_action
-  gw.actions.wielding.fast_action = loadout.fast_action
-  gw.actions.wielding.slow_action = loadout.slow_action
-  gw.actions.wielding.main_action_alt = loadout.main_action_alt
-  gw.actions.wielding.fast_action_alt = loadout.fast_action_alt
-  gw.actions.wielding.slow_action_alt = loadout.slow_action_alt
-  
-  return loadout.style
-
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>list_loadouts</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.list_loadouts()
-  local mydb = db:get_database("char_info")
-  local loadouts = db:fetch(mydb.loadout)
-  
-  if #loadouts == 0 then
-    echo("# no loads out found\n")
-    return
-  end
-  
-  for k, v in pairs(loadouts) do
-    lh = v.left_hand
-    if #lh == 0 then
-      lh = "&lt;nil&gt;"
-    end
-    
-		echo(string.format("# loadout: %s - style = %s, right hand = %s, left hand = %s\n", v.name, v.style, v.right_hand, lh))
-	end
-
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>clear_loadouts</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.clear_loadouts()
-  local mydb = db:get_database("char_info")
-  db:delete(mydb.loadout, true)
-  
-  echo("# loadouts cleared\n")
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>set_loadout_slot</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.set_loadout_slot(slot, loadout)
-
-  if slot &gt; 3 or slot &lt; 1 then
-    echo("# error: attempting to set invalid slot " .. slot .. "\n")
-    return
-  end
-  
-  local mydb = db:get_database("char_info")
-  
-  local lo = gw.actions.wielding.get_loadout(mydb, loadout)
-  
-  if lo == nil then
-    echo("# no loadout found called: " .. loadout .. "\n")
-    return nil
-  end
-
-  gw.actions.wielding.loadout_slots[slot] = loadout
-  
-  local field = mydb.char_vars.loadout_slot1
-    
-  if slot == 2 then
-    field = mydb.char_vars.loadout_slot2
-  elseif slot == 3 then
-    field = mydb.char_vars.loadout_slot3
-  end
-  
-  db:set(field, loadout, db:eq(mydb.char_vars.name, gw.initialization.character))
-  
-  gw.misc.announce_variable("loadout slot " .. slot, loadout)
-
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>list_loadout_slots</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.list_loadout_slots()
-  local mydb = db:get_database("char_info")
-  local char_vars = gw.initialization.get_char_vars(mydb, gw.initialization.character)
-  
-  echo(string.format("# loadout slot 1 = %s\n", char_vars.loadout_slot1))
-  echo(string.format("# loadout slot 2 = %s\n", char_vars.loadout_slot2))
-  echo(string.format("# loadout slot 3 = %s\n", char_vars.loadout_slot3))
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>set_action</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.set_action(name, type, action)
-  local mydb = db:get_database("char_info")
-  
-  local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
-  
-  if loadout == nil then
-    echo(string.format('# current loadout (%s) not found\n', gw.actions.wielding.current_loadout))
-    return
-  end
-  
-  local cmd = gw.actions.act.find_action(loadout, action)
-  
-  if cmd == nil then
-    return
-  end
-  
-  local field = mydb.loadout.main_action
-  
-  if name == 'main' and type == 'alt' then
-    field = mydb.loadout.main_action_alt
-  elseif name == 'fast' and type == 'n' then
-    field = mydb.loadout.fast_action
-  elseif name == 'fast' and type == 'alt' then
-    field = mydb.loadout.fast_action_alt
-  elseif name == 'slow' and type == 'n' then
-    field = mydb.loadout.slow_action
-  elseif name == 'slow' and type == 'alt' then
-    field = mydb.loadout.slow_action_alt
-  end
-  
-  db:set(field, action, db:eq(mydb.loadout.name, gw.actions.wielding.current_loadout))
-  
-  gw.misc.announce_variable(string.format('action %s %s', name, type), action)
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>is_sheathable</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.is_sheathable(weapon)
-	if weapon == "magic" or weapon == "unarmed" or weapon == nil or weapon == '' then
-    return false
-  else
-    return true
-  end
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>is_bow</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.is_bow(weapon)
-	if weapon == 'shortbow' or weapon == 'composite' or weapon == 'longbow' or weapon == 'crossbow' then
-    return true
-  else
-    return false
-  end
-end</script>
-						<eventHandlerList />
-					</Script>
-				</ScriptGroup>
-				<ScriptGroup isActive="yes" isFolder="yes">
-					<name>Act</name>
-					<packageName></packageName>
-					<script>function initialize_manager_actions_act()
-  local act = {}
-  
-  local styles = {
-    any = {
-      unarmed = {
-        ['1 3 5 2 combo'] = 'fsssssd',
-      },
-      ['2unarmed'] = {
-        ['1 4 5 combo'] = 'dfs',
-        backhand = 'wfs',
-      },
-      head = {
-        bite = 'b',
-        regenerate = 'r',
-        headbutt = 'h',
-      },
-      feet = {
-        ['leg sweep'] = 'drk',
-      },
-      sword = {
-        ['counter attack'] = 'ddd',
-      },
-      curvedsword = {
-        ['counter attack'] = 'ddd',
-      },
-      samurai_sword = {
-        ['counter attack'] = 'ddd',
-      },
-      dagger = {
-        backstab = 't',
-        ['throat slit'] = 's',
-      },
-      ninjatou = {
-        backstab = 't',
-        ['throat slit'] = 's',
-      },
-      throwing_knife = {
-        ['quick shot'] = 'at',
-        ['long aim shot'] = 'aaat',
-      },
-      fist_dagger = {
-        ['high strike'] = 'h',
-        ['medium strike'] = 'm',
-        ['low strike'] = 'l',
-      },
-      throwing_axe = {
-        ['quick shot'] = 'at',
-        ['long aim shot'] = 'aaat',
-      },
-      big_shield = {
-        defend = 'd'
-      },
-      shield = {
-        defend = 'd',
-        bash = 'b',
-        ['high defend'] = 'h',
-        ['medium defend'] = 'm',
-        ['low defend'] = 'l',
-      },
-      bow = {
-        load = 'l',
-        ['quick shot'] = 'af',
-        ['long aim shot'] = 'aaaf',
-      },
-      net = {
-        ['quick throw'] = 'wt',
-        ['long aim throw'] = 'wwwt',
-      },
-      whip = {
-        ['hard lash'] = 'wwwl',
-      },
-      flail = {
-        ['hard strike'] = 'wwwws',
-      },
-      spear = {
-        ['spear brace'] = 'ddp',
-      },
-      staff = {
-        ['staff thrust'] = 'wt',
-      },
-      lance = {
-        raise = 'r',
-        lower = 'l',
-      },
-      wand = {
-        ['energy bolt'] = 'gwp',
-        heal = 'fgp',
-        forcefield = 'gg',
-        mend = 'ffp',
-        teleport = 'wfp',
-      },
-    },
-    viper = {
-      unarmed = { ['patient viper'] = 'dd' },
-      feet = {
-        ['coiled viper'] = 'jd',
-        ['slithering snake'] = 'df',
-      },
-      sword = {
-        ['kiss of the viper'] = 'wt',
-        ['coiled viper watches prey'] = 'sd',
-        ['darting snake'] = 'dt',
-        ['striking viper'] = 'sdt',
-        ['swaying dance of the snake'] = 'ww',
-      },
-      dagger = {
-        ['kiss of the viper'] = 'wt',
-        ['coiled viper watches prey'] = 'sd',
-        ['darting snake'] = 'dt',
-        ['striking viper'] = 'sdt',
-        ['agile snake evades foe'] = 'wd',
-      },
-      martial_dagger = {
-        ['kiss of the viper'] = 'wt',
-        ['coiled viper watches prey'] = 'sd',
-        ['striking viper'] = 'sdt',
-      },
-      polearm = {
-        ['darting snake'] = 'dt',
-      },
-      spear_weapon = {
-        ['darting snake'] = 'dt',
-      },
-      staff = {
-        ['darting snake'] = 'dt',
-      },
-    },
-    crane = {
-      unarmed = { ['crane raises wing'] = 'dd' },
-      feet = { ['perching bird'] = 'jjfd' },
-      sword = {
-        ['dancing crane'] = 'wd',
-        ['pecking crane'] = 'wdt',
-      },
-    },
-    crab = {
-      unarmed = { ['crab raises claw'] = 'dd' },
-      feet = { ['crab scuttles sideways'] = 'bb' },
-      sword = { ['snapping claw of the crab'] = 'wts', },
-    },
-    mongoose = {
-      unarmed = {
-        ['claws of the mongoose'] = 'pf',
-        ['striking mongoose'] = 'pfs',
-      },
-      feet = { ['stalking mongoose'] = 'df' },
-    },
-    bull = {
-      unarmed = {
-        ['bull fist'] = 'ff',
-        ['bull punch'] = 'ffs',
-      },
-      feet = { ['rushing bull'] = 'ffff' },
-      sword = { ['charging bull'] = 'wt', },
-    },
-    mantis = {
-      feet = { ['rearing mantis'] = 'jb' },
-      sword = {
-        ['slicing claw of the mantis'] = 'wws',
-        ['praying mantis raises claw'] = 'dds',
-      },
-    },
-    dragon = {
-      unarmed = {
-        ['dragon fist'] = 'ff',
-        ['dragon punch'] = 'ffs',
-      },
-      feet = {
-        ['rearing dragon'] = 'jb',
-        ['swooping dragon'] = 'jjfd'
-      },
-    },
-    tiger = {
-      feet = {
-        ['poised cat'] = 'dj',
-        ['stalking tiger'] = 'df',
-        ['pouncing cat'] = 'jjfd',
-      },
-      curvedsword = {
-        ['cat plays with prey'] = 'ww',
-        ['cat snags prey'] = 'wws',
-        ['cat finishes prey'] = 'wwss',
-      },
-    },
-    monkey = {
-      feet = {
-        ['crouching monkey'] = 'dj',
-        ['leaping monkey'] = 'jjk'
-      },
-    },
-    swallow = {
-      feet = {
-        ['waiting swallow'] = 'dj',
-        ['perching bird'] = 'jjfd'
-      },
-    },
-    bear = {
-      feet = { ['loping bear'] = 'df' },
-    },
-    cobra = {
-      feet = {
-        ['coiled cobra'] = 'jd',
-        ['slithering snake'] = 'df'
-      },
-      sword = {
-        ['swaying dance of the snake'] = 'ww',
-        ['darting snake'] = 'dt',
-      },
-    },
-    eagle = {
-      unarmed = { ['eagle shadow fist'] = 'fs' },
-      feet = { ['perching bird'] = 'jjfd' },
-      sword = {
-        ['circling raptor'] = 'ww',
-        ['diving raptor'] = 'wws',
-      },
-    },
-    scorpion = {
-      unarmed = { ['scorpion raises claw'] = 'dd' },
-      feet = {
-        ['striking tail of the scorpion'] = 'jjk',
-        ['scorpion faces foe'] = 'bb'
-      },
-      sword = { ['snapping claw of the scorpion'] = 'wts', },
-    },
-    fox = {
-      feet = { ['cunning fox evades foe'] = 'bb' },
-    },
-    hawk = {
-      feet = { ['perching bird'] = 'jjfd' },
-      sword = {
-        ['circling raptor'] = 'ww',
-        ['diving raptor'] = 'wws',
-        ['striking hawk'] = 'wwt',
-      },
-    },
-    rhino = {
-      feet = { ['unstoppable charge of the rhino'] = 'fffk' },
-      sword = { ['horn of the rhino'] = 'dt', },
-    },
-    lion = {
-      feet = {
-        ['poised cat'] = 'dj',
-        ['stalking lion'] = 'df',
-        ['pouncing cat'] = 'jjfd',
-      },
-      curvedsword = {
-        ['cat plays with prey'] = 'ww',
-        ['cat snags prey'] = 'wws',
-        ['cat finishes prey'] = 'wwss',
-      },
-    },
-    ape = {
-      feet = { ['slouching ape'] = 'dj' },
-    },
-    asp = {
-      feet = {
-        ['coiled asp'] = 'jd',
-        ['slithering snake'] = 'df'
-      },
-      sword = {
-        ['swaying dance of the snake'] = 'ww',
-        ['darting snake'] = 'dt',
-      },
-    },
-    serpent = {
-      feet = {
-        ['coiled serpent'] = 'jd',
-        ['slithering snake'] = 'df'
-      },
-      sword = {
-        ['swaying dance of the snake'] = 'ww',
-        ['darting snake'] = 'dt',
-      },
-    },
-    hydra = {
-      feet = {
-        ['coiled hydra'] = 'jd',
-        ['slithering snake'] = 'df'
-      },
-      sword = {
-        ['swaying dance of the snake'] = 'ww',
-        ['darting snake'] = 'dt',
-      },
-    },
-    leopard = {
-      feet = {
-        ['poised cat'] = 'dj',
-        ['stalking leopard'] = 'df',
-        ['pouncing cat'] = 'jjfd',
-      },
-      curvedsword = {
-        ['cat plays with prey'] = 'ww',
-        ['cat snags prey'] = 'wws',
-        ['cat finishes prey'] = 'wwss',
-        ['savage claws of the leopard'] = 'ts',
-      },
-    },
-    wolf = {
-      feet = { ['stalking wolf'] = 'df' },
-    },
-    flea = {},
-  }
-  
-  act.styles = styles
-  
-  return act
-end
-
-manager.actions.act = manager.actions.act or initialize_manager_actions_act()</script>
-					<eventHandlerList />
-					<Script isActive="yes" isFolder="no">
-						<name>perform_action</name>
-						<packageName></packageName>
-						<script>function manager.actions.act.perform_action(field)
-  local mydb = db:get_database("char_info")
-  local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
-  
-  if loadout == nil then
-    echo(string.format('# current loadout (%s) not found\n', gw.actions.wielding.current_loadout))
-    return
-  end
-  
-  local cmd, bp, enchance = gw.actions.act.find_action(loadout, loadout[field])
-  
-  if cmd == nil then
-    return
-  end
-  
-  if bp == 'custom' then
-    send(cmd)
-    return
-  end
-  
-  gw.actions.act.interpret_command(bp, cmd, enchance)
-  
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>find_action</name>
-						<packageName></packageName>
-						<script>function manager.actions.act.find_action(loadout, action)
-  local act_table = action:split(":")
-  
-  if #act_table &lt; 2 then
-    echo('# expected action format of &lt;body part&gt;:&lt;action&gt;(:&lt;enhance&gt;?), got: "' .. action .. '"\n')
-    return nil
-  end
-  
-  local weapon = nil
-  local command = nil
-  local enhance = #act_table == 3
-  
-  if act_table[1] == 'r' then
-    weapon = loadout.right_hand
-  elseif act_table[1] == 'l' then
-    weapon = loadout.left_hand
-  elseif act_table[1] == 'f' then
-    weapon = 'feet'
-  elseif act_table[1] == 'h' then
-    weapon = 'head'
-  elseif act_table[1] == 'c' then
-    return act_table[2], 'custom'
-  else
-    echo(string.format('# got unexpected body command: "%s"\n', act_table[1]))
-    return nil
-  end
-  
-  local style_table = gw.actions.act.styles[loadout.style]
-  local any_style_table = gw.actions.act.styles['any']
-  local weapon_type = gw.actions.wielding.weapon_map[weapon]
-  
-  if weapon_type == nil or #weapon_type == 0 then
-    echo('# WARNING: no weapon_type for weapon: ' .. weapon .. '\n')
-  end
-  
-  function merge(tbl1, tbl2)
-    local result = {}
-    tbl1 = tbl1 or {}
-    tbl2 = tbl2 or {}
-    
-    for k, v in pairs(tbl2) do
-      result[k] = v
-    end
-    
-    for k, v in pairs(tbl1) do
-      result[k] = v
-    end
-    
-    return result
-  end
-  
-  local commands_table = merge(merge(style_table[weapon], style_table[weapon_type]), merge(any_style_table[weapon], any_style_table[weapon_type]))
-  
-  if commands_table == nil or table.size(commands_table) == 0 then
-    echo(string.format('# style "%s" does not have a weapon "%s", available weapons are:\n', loadout.style, weapon))
-    for k, _v in pairs(style_table) do
-      echo(string.format('#\t%s\n', k))
-    end
-    for k, _v in pairs(any_style_table) do
-      echo(string.format('#\t%s\n', k))
-    end
-    
-    return nil
-  end
-  
-  command = commands_table[act_table[2]]
-  
-  if command == nil then
-    echo(string.format('# style "%s" does not have an action "%s" for weapon "%s", available actions are:\n', loadout.style, act_table[2], weapon))
-    for k, _v in pairs(commands_table) do
-      echo(string.format('#\t%s\n', k))
-    end
-  end
-  
-  return command, act_table[1], enhance
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>interpret_command</name>
-						<packageName></packageName>
-						<script>function manager.actions.act.interpret_command(body_part, action, enhance)
-  for i = 1, #action do
-    local c = action:sub(i,i)
-    local cmd = string.format('%s%s', body_part, c)
-    if enhance and i == #action then
-      cmd = cmd .. "+"
-    end
-    send(cmd)
-  end
-end</script>
-						<eventHandlerList />
-					</Script>
-					<Script isActive="yes" isFolder="no">
-						<name>list_actions</name>
-						<packageName></packageName>
-						<script>function manager.actions.wielding.list_actions()
-  local mydb = db:get_database("char_info")
-  local loadout = gw.actions.wielding.get_loadout(mydb, gw.actions.wielding.current_loadout)
-  
-  if loadout == nil then
-    echo(string.format('# current loadout (%s) not found\n', gw.actions.wielding.current_loadout))
-    return
-  end
-  
-  echo(string.format("# loadout = %s, style = %s\n", loadout.name, loadout.style))
-  echo(string.format("# main action = %s\n", loadout.main_action))
-  echo(string.format("# fast action = %s\n", loadout.fast_action))
-  echo(string.format("# slow action = %s\n", loadout.slow_action))
-  echo(string.format("# main alt action = %s\n", loadout.main_action_alt))
-  echo(string.format("# fast alt action = %s\n", loadout.fast_action_alt))
-  echo(string.format("# slow alt action = %s\n", loadout.slow_action_alt))
-end</script>
-						<eventHandlerList />
-					</Script>
-				</ScriptGroup>
 				<Script isActive="yes" isFolder="no">
 					<name>interpret_command</name>
 					<packageName></packageName>
@@ -1750,9 +944,9 @@ end</script>
   local enhance = #act_table == 3
   
   if act_table[1] == 'e' then
-    expandAlias(act_table[2])
+    expandAlias(act_table[2], manager.debug)
   elseif act_table[1] == 'c' then
-    send(act_table[2])
+    send(act_table[2], manager.debug)
   else
     echo(string.format('# got unexpected command: "%s"\n', act_table[1]))
     return nil
@@ -1848,6 +1042,49 @@ end</script>
     echo(f'{first_char}{field} = {v}')
     first_char = ', '
   end
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Targetting</name>
+				<packageName></packageName>
+				<script>function initialize_manager_targetting()
+	local targetting = {}
+  
+  targetting.target = 'target'
+  targetting.prev_target = 'target'
+
+	return targetting
+end
+
+manager.targetting = manager.targetting or initialize_manager_targetting()</script>
+				<eventHandlerList />
+				<Script isActive="yes" isFolder="no">
+					<name>prev_target_action</name>
+					<packageName></packageName>
+					<script>function manager.targetting.prev_target_action(action)
+  manager.targetting.set_target(manager.targetting.prev_target)
+	expandAlias(f'{action} {manager.targetting.target}')
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>target_action</name>
+					<packageName></packageName>
+					<script>function manager.targetting.target_action(action)
+	expandAlias(f'{action} {manager.targetting.target}')
+end
+</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>set_target</name>
+					<packageName></packageName>
+					<script>function manager.targetting.set_target(target)
+  manager.targetting.prev_target = manager.targetting.target
+	manager.targetting.target = target
+  manager.misc.announce_variable('target', target)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1995,6 +1232,22 @@ end</script>
 						<command></command>
 						<keyCode>45</keyCode>
 						<keyModifier>671088640</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP1 (action: mood_n)</name>
+						<packageName></packageName>
+						<script>manager.actions.perform_action('mood_n')</script>
+						<command></command>
+						<keyCode>49</keyCode>
+						<keyModifier>536870912</keyModifier>
+					</Key>
+					<Key isActive="yes" isFolder="no">
+						<name>KP1+Shift (action: mood_shift)</name>
+						<packageName></packageName>
+						<script>manager.actions.perform_action('mood_shift')</script>
+						<command></command>
+						<keyCode>16777233</keyCode>
+						<keyModifier>536870912</keyModifier>
 					</Key>
 				</KeyGroup>
 				<KeyGroup isActive="yes" isFolder="yes">
