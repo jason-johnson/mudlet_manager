@@ -271,7 +271,6 @@ end</script>
 					<name>create_tables</name>
 					<packageName></packageName>
 					<script>function manager.initialization.create_tables(db_name_unsafe)
-  db.debug_sql = true
 	local sheets = {
     loadouts = [[
       CREATE TABLE IF NOT EXISTS loadouts (
@@ -1817,6 +1816,7 @@ manager.misc.announce_variable('user mapper', manager.doors.use_mapper, true)</s
 				<name>Manager debugging</name>
 				<packageName></packageName>
 				<script>manager.debug = not manager.debug
+db.debug_sql = manager.debug
 
 manager.misc.announce_variable('manager.debug', manager.debug, true)</script>
 				<command></command>
