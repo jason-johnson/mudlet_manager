@@ -198,7 +198,7 @@ manager.targetting.target_action('kill')</script>
 			<name>Manager</name>
 			<packageName></packageName>
 			<script>function initialize_manager()
-	local manager = {}
+  local manager = {}
   
   manager.char_fields = {
     'name',
@@ -216,7 +216,7 @@ manager.targetting.target_action('kill')</script>
   
   manager.debug = false
 
-	return manager
+  return manager
 end
 
 manager = manager or initialize_manager()</script>
@@ -230,7 +230,7 @@ manager = manager or initialize_manager()</script>
 					<name>initialize</name>
 					<packageName></packageName>
 					<script>function manager.initialization.initialize()
-	local mydb = manager.initialization.initialize_db()
+  local mydb = manager.initialization.initialize_db()
   local profile_info = manager.initialization.get_profile_info(mydb)
   
   if profile_info.use_default_char == "true" then
@@ -244,23 +244,23 @@ end</script>
 					<name>initialize db</name>
 					<packageName></packageName>
 					<script>function manager.initialization.initialize_db()
-	local mydb = db:create("char_info", {
+  local mydb = db:create("char_info", {
     profile_info = {
       use_default_char = "false",
       default_char = "",
       _unique = { "default_char" },
-			_violations = "FAIL"
+      _violations = "FAIL"
     },
-		char_vars = {
-			name = "",
+    char_vars = {
+      name = "",
       description = "",
       current_loadout = "",
       load_command = "",
       container = "",
-			_unique = { "name" },
-			_violations = "FAIL"
-		},
-	})
+      _unique = { "name" },
+      _violations = "FAIL"
+    },
+  })
   manager.initialization.create_tables("char_info")
   
   return mydb
@@ -416,7 +416,7 @@ end</script>
 					<script>function manager.char.set_default_character(character)
   local mydb = db:get_database("char_info")
   
-	if not manager.char.character_exists(mydb, character) then
+  if not manager.char.character_exists(mydb, character) then
     echo(f'# No such character: {character}\n')
     return
   end
@@ -450,15 +450,15 @@ end</script>
 --  db.debug_sql = true
   local mydb = db:get_database("char_info")
   local r, err = db:add(mydb.char_vars, {
-			name = character,
-      description = description,
-		})
+    name = character,
+    description = description,
+  })
     
-    if not r then
-      echo(f'# error creating char_vars: {err}\n')
-    else
-      echo(f'\n# new char_vars "{character}" created\n')
-    end
+  if not r then
+    echo(f'# error creating char_vars: {err}\n')
+  else
+    echo(f'\n# new char_vars "{character}" created\n')
+  end
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -524,11 +524,11 @@ end</script>
 				<name>Loadouts</name>
 				<packageName></packageName>
 				<script>function initialize_manager_loadouts()
-	local loadouts = {}
+  local loadouts = {}
   
   loadouts.current = {}
 
-	return loadouts
+  return loadouts
 end
 
 manager.loadouts = manager.loadouts or initialize_manager_loadouts()</script>
@@ -718,11 +718,11 @@ end</script>
 					<name>Actions</name>
 					<packageName></packageName>
 					<script>function initialize_manager_loadouts_actions()
-	local actions = {}
+  local actions = {}
   
   actions.current = {}
 
-	return actions
+  return actions
 end
 
 manager.loadouts.actions = manager.loadouts.actions or initialize_manager_loadouts_actions()</script>
@@ -863,11 +863,11 @@ end</script>
 					<name>highlight</name>
 					<packageName></packageName>
 					<script>function manager.misc.highlight(cg, txt, color)
-	color = color or "white"
-	selectCaptureGroup(cg)
-	fg(color)
-	replace(string.upper(txt))
-	manager.misc.resetFormatting()
+  color = color or "white"
+  selectCaptureGroup(cg)
+  fg(color)
+  replace(string.upper(txt))
+  manager.misc.resetFormatting()
 end
 </script>
 					<eventHandlerList />
@@ -876,8 +876,8 @@ end
 					<name>resetFormatting</name>
 					<packageName></packageName>
 					<script>function manager.misc.resetFormatting()
-	deselect()
-	resetFormat()
+  deselect()
+  resetFormat()
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -885,11 +885,11 @@ end</script>
 					<name>replaceCurrentLine</name>
 					<packageName></packageName>
 					<script>function manager.misc.replaceCurrentLine(txt, color)
-	color = color or "white"
-	selectString(line, 1)
-	fg(color)
-	replace(txt)
-	manager.misc.resetFormatting()
+  color = color or "white"
+  selectString(line, 1)
+  fg(color)
+  replace(txt)
+  manager.misc.resetFormatting()
 end
 </script>
 					<eventHandlerList />
@@ -898,10 +898,10 @@ end
 					<name>freplaceCurrentLine</name>
 					<packageName></packageName>
 					<script>function manager.misc.freplaceCurrentLine(txt)
-	selectCurrentLine()
-	replace("")
-	cecho(txt .. "\n")
-	manager.misc.resetFormatting()
+  selectCurrentLine()
+  replace("")
+  cecho(txt .. "\n")
+  manager.misc.resetFormatting()
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -909,12 +909,12 @@ end</script>
 					<name>replaceCaptureGroup</name>
 					<packageName></packageName>
 					<script>function manager.misc.replaceCaptureGroup(txt, group, color)
-	group = group or 2
-	color = color or "white"
-	selectCaptureGroup(group)
-	fg(color)
-	replace(txt)
-	manager.misc.resetFormatting()
+  group = group or 2
+  color = color or "white"
+  selectCaptureGroup(group)
+  fg(color)
+  replace(txt)
+  manager.misc.resetFormatting()
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -930,7 +930,7 @@ end</script>
     end
   end
   
-	echo(f'# {name} now set to: "{value}"\n')
+  echo(f'# {name} now set to: "{value}"\n')
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1074,12 +1074,12 @@ end</script>
 				<name>Targetting</name>
 				<packageName></packageName>
 				<script>function initialize_manager_targetting()
-	local targetting = {}
+  local targetting = {}
   
   targetting.target = 'target'
   targetting.prev_target = 'target'
 
-	return targetting
+  return targetting
 end
 
 manager.targetting = manager.targetting or initialize_manager_targetting()</script>
@@ -1089,7 +1089,7 @@ manager.targetting = manager.targetting or initialize_manager_targetting()</scri
 					<packageName></packageName>
 					<script>function manager.targetting.prev_target_action(action)
   manager.targetting.set_target(manager.targetting.prev_target)
-	expandAlias(f'{action} {manager.targetting.target}')
+  expandAlias(f'{action} {manager.targetting.target}')
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1097,7 +1097,7 @@ end</script>
 					<name>target_action</name>
 					<packageName></packageName>
 					<script>function manager.targetting.target_action(action)
-	expandAlias(f'{action} {manager.targetting.target}')
+  expandAlias(f'{action} {manager.targetting.target}')
 end
 </script>
 					<eventHandlerList />
@@ -1107,7 +1107,7 @@ end
 					<packageName></packageName>
 					<script>function manager.targetting.set_target(target)
   manager.targetting.prev_target = manager.targetting.target
-	manager.targetting.target = target
+  manager.targetting.target = target
   manager.misc.announce_variable('target', target)
 end</script>
 					<eventHandlerList />
