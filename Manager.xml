@@ -1298,6 +1298,14 @@ end</script>
 					<keyModifier>536870912</keyModifier>
 				</Key>
 				<Key isActive="yes" isFolder="no">
+					<name>KP+ +Shift (action: fast_shift)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('fast_shift')</script>
+					<command></command>
+					<keyCode>43</keyCode>
+					<keyModifier>570425344</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
 					<name>KP++Ctrl (action: fast_alt)</name>
 					<packageName></packageName>
 					<script>manager.actions.perform_action('fast_alt')</script>
