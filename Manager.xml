@@ -203,7 +203,7 @@ manager.targetting.target_action('kill')</script>
   manager.char_fields = {
     'name',
     'current_loadout',
-    'container',
+    'data',
     'load_command',
   }
   
@@ -256,7 +256,7 @@ end</script>
       description = "",
       current_loadout = "",
       load_command = "",
-      container = "",
+      data = "",
       _unique = { "name" },
       _violations = "FAIL"
     },
@@ -271,13 +271,13 @@ end</script>
 					<name>create_tables</name>
 					<packageName></packageName>
 					<script>function manager.initialization.create_tables(db_name_unsafe)
-	local sheets = {
+  local sheets = {
     loadouts = [[
       CREATE TABLE IF NOT EXISTS loadouts (
         name TEXT NOT NULL,
         char_name TEXT NOT NULL,
         wield TEXT NOT NULL,
-			  sheath TEXT NULL,
+        sheath TEXT NULL,
         stance TEXT NOT NULL,
         PRIMARY KEY (name, char_name),
         FOREIGN KEY (char_name) 
@@ -339,22 +339,22 @@ end</script>
 					<packageName></packageName>
 					<script>function manager.initialization.get_profile_info(mydb)
 
-	local profile_info = db:fetch(mydb.profile_info)
+  local profile_info = db:fetch(mydb.profile_info)
 
-	if #profile_info == 0 then
-		local r, err = db:add(mydb.profile_info, {
-			use_default_char = "false",
+  if #profile_info == 0 then
+    local r, err = db:add(mydb.profile_info, {
+      use_default_char = "false",
       default_char = ""
-		})
+    })
     
     if not r then
       echo(f'# error creating profile_info: {err}\n')
     end
 
-		echo('\n# new profile_info created\n')
+    echo('\n# new profile_info created\n')
 
-		profile_info = db:fetch(mydb.profile_info)
-	end
+    profile_info = db:fetch(mydb.profile_info)
+  end
 
   return profile_info[1]
 
@@ -366,24 +366,24 @@ end</script>
 					<packageName></packageName>
 					<script>function manager.initialization.get_char_vars(mydb, character)
 
-	local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+  local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 
-	if #char_vars == 0 then
-		local r, err = db:add(mydb.char_vars, {
-			name = character,
+  if #char_vars == 0 then
+    local r, err = db:add(mydb.char_vars, {
+      name = character,
       current_loadout_type = nil,
       current_loadout_index = 0,
-      container = nil,
-		})
+      data = nil,
+    })
     
     if not r then
       echo(f'# error creating char_vars: {err}\n')
     end
 
-		echo(f'\n# new char_vars "{character}" created\n')
+    echo(f'\n# new char_vars "{character}" created\n')
 
-		char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
-	end
+    char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
+  end
 
   return char_vars[1]
 
