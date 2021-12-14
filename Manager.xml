@@ -487,7 +487,7 @@ end</script>
   
   for k, v in pairs(chars) do
     echo(f'# character: {v.name} ({v.description})\n')
-	end
+  end
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -498,7 +498,7 @@ end</script>
   
   local char_vars = db:fetch(mydb.char_vars, db:eq(mydb.char_vars.name, character))
 
-	return #char_vars ~= 0
+  return #char_vars ~= 0
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -508,7 +508,7 @@ end</script>
 					<script>function manager.char.add_load_command(character, command)
   local mydb = db:get_database("char_info")
   
-	if not manager.char.character_exists(mydb, character) then
+  if not manager.char.character_exists(mydb, character) then
     echo(f'# No such character: {character}\n')
     return
   end
@@ -516,6 +516,45 @@ end</script>
   db:set(mydb.char_vars.load_command, command, db:eq(mydb.char_vars.name, character))
   
   echo(f'\n# character "{character}" now has load command "{command}"\n')
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>get_custom_data</name>
+					<packageName></packageName>
+					<script>function manager.char.get_custom_data()
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
+  
+  if not manager.data or manager.data == '' then
+    return {}
+  end
+  
+  return yajl.to_value(manager.data)
+end</script>
+					<eventHandlerList />
+				</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>save_custom_data</name>
+					<packageName></packageName>
+					<script>function manager.char.save_custom_data(data)
+  if not manager.name or manager.name == nil then
+    echo('# No character loaded\n')
+    return
+  end
+  
+  local mydb = db:get_database("char_info")
+  
+  if not manager.char.character_exists(mydb, manager.name) then
+    echo(f'# No such character: {manager.name}\n')
+    return
+  end
+  
+  local data_string = yajl.to_string(data)
+  
+  db:set(mydb.char_vars.data, data_string, db:eq(mydb.char_vars.name, manager.name))
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1117,20 +1156,20 @@ end</script>
 				<name>Doors</name>
 				<packageName></packageName>
 				<script>function initialize_manager_doors()
-	local doors = {}
+  local doors = {}
 
   doors.use_mapper = true
-	
-	doors.door_names = {
-		["north"] = "exit n",
-		["south"] = "exit s",
-		["east"] = "exit e",
-		["west"] = "exit w",
-		["up"] = "exit u",
-		["down"] = "exit d"
-	}
 
-	return doors
+  doors.door_names = {
+    ["north"] = "exit n",
+    ["south"] = "exit s",
+    ["east"] = "exit e",
+    ["west"] = "exit w",
+    ["up"] = "exit u",
+    ["down"] = "exit d"
+  }
+
+  return doors
 end
 
 manager.doors = manager.doors or initialize_manager_doors()</script>
@@ -1139,7 +1178,7 @@ manager.doors = manager.doors or initialize_manager_doors()</script>
 					<name>set_door_name</name>
 					<packageName></packageName>
 					<script>function manager.doors.set_door_name(name, value)
-	manager.doors.door_names[name] = value
+  manager.doors.door_names[name] = value
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1147,7 +1186,7 @@ end</script>
 					<name>get_door_name</name>
 					<packageName></packageName>
 					<script>function manager.doors.get_door_name(name)
-	return manager.doors.door_names[name]
+  return manager.doors.door_names[name]
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1156,12 +1195,12 @@ end</script>
 					<packageName></packageName>
 					<script>function manager.doors.act_door_name(act, alt_act, name)
   if manager.doors.use_mapper
-	then
-	  expandAlias(f'{alt_act} {string.sub(name, 1, 1)}')
-	else
-	  local door_name = manager.doors.get_door_name(name)
-		send(f'{act} {door_name}')
-	end
+  then
+    expandAlias(f'{alt_act} {string.sub(name, 1, 1)}')
+  else
+    local door_name = manager.doors.get_door_name(name)
+    send(f'{act} {door_name}')
+  end
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1177,7 +1216,7 @@ end</script>
 					<name>close_door</name>
 					<packageName></packageName>
 					<script>function manager.doors.close_door(name)
-	manager.doors.act_door_name("cl", "_close", name)
+  manager.doors.act_door_name("cl", "_close", name)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1185,7 +1224,7 @@ end</script>
 					<name>pick_door</name>
 					<packageName></packageName>
 					<script>function manager.doors.pick_door(name)
-	manager.doors.act_door_name("pi", "_pick", name)
+  manager.doors.act_door_name("pi", "_pick", name)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1193,7 +1232,7 @@ end</script>
 					<name>lock_door</name>
 					<packageName></packageName>
 					<script>function manager.doors.lock_door(name)
-	manager.doors.act_door_name("lock", "_lock", name)
+  manager.doors.act_door_name("lock", "_lock", name)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1201,7 +1240,7 @@ end</script>
 					<name>unlock_door</name>
 					<packageName></packageName>
 					<script>function manager.doors.unlock_door(name)
-	manager.doors.act_door_name("unl", "_unlock", name)
+  manager.doors.act_door_name("unl", "_unlock", name)
 end</script>
 					<eventHandlerList />
 				</Script>
@@ -1211,7 +1250,7 @@ end</script>
 					<script>function manager.doors.special_door(name)
   local cmd = manager.actions.find_action('door_special') or 'exit'
   local map_cmd = manager.actions.find_action('door_special_mapper') or '_exit'
-	manager.doors.act_door_name(cmd, map_cmd, name)
+  manager.doors.act_door_name(cmd, map_cmd, name)
 end</script>
 					<eventHandlerList />
 				</Script>
