@@ -1,3 +1,3 @@
 # Mudlet Manager
 
-This module is designed to provide a certain setup to almost any mud.  The concept is based around loadouts which must be defined per character.  These loadouts configure the buttons for the character using that loadout.  This aids muscle memory when switching between muds and characters as the buttons are always in the same place (assuming the user configures the loadouts similarly across all muds and characters)
+This module is the main module that contains the code which should be able to run on any possible kind of mud.  Due to this, mostly only loadouts and character databases are provided.

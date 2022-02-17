@@ -3,7 +3,7 @@
 <MudletPackage version="1.001">
 	<TriggerPackage>
 		<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
-			<name>Manager</name>
+			<name>Diku</name>
 			<script></script>
 			<triggerType>0</triggerType>
 			<conditonLineDelta>0</conditonLineDelta>
@@ -18,7 +18,7 @@
 			<regexCodeList />
 			<regexCodePropertyList />
 			<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
-				<name>Manager Keep</name>
+				<name>Diku Keep</name>
 				<script>-- sysConnectionEvent
 -- sysLoadEvent</script>
 				<triggerType>0</triggerType>
@@ -43,7 +43,7 @@
 	<TimerPackage />
 	<AliasPackage>
 		<AliasGroup isActive="yes" isFolder="yes">
-			<name>Manager</name>
+			<name>Diku</name>
 			<script></script>
 			<command></command>
 			<packageName></packageName>
@@ -195,7 +195,7 @@ manager.targetting.target_action('kill')</script>
 	<ActionPackage />
 	<ScriptPackage>
 		<ScriptGroup isActive="yes" isFolder="yes">
-			<name>Manager</name>
+			<name>Diku</name>
 			<packageName></packageName>
 			<script>function initialize_manager()
   local manager = {}
@@ -1271,7 +1271,7 @@ end</script>
 	</ScriptPackage>
 	<KeyPackage>
 		<KeyGroup isActive="yes" isFolder="yes">
-			<name>Manager</name>
+			<name>Diku</name>
 			<packageName></packageName>
 			<script></script>
 			<command></command>
@@ -1365,14 +1365,6 @@ end</script>
 					<keyModifier>603979776</keyModifier>
 				</Key>
 				<Key isActive="yes" isFolder="no">
-					<name>KP+ +Ctrl+Shift (action: fast_alt_shift)</name>
-					<packageName></packageName>
-					<script>manager.actions.perform_action('fast_alt_shift')</script>
-					<command></command>
-					<keyCode>43</keyCode>
-					<keyModifier>637534208</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
 					<name>KP+ +Alt (action: fast_n_prev)</name>
 					<packageName></packageName>
 					<script>manager.actions.perform_action('fast_n_prev')</script>
@@ -1403,14 +1395,6 @@ end</script>
 					<command></command>
 					<keyCode>45</keyCode>
 					<keyModifier>603979776</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP-+Ctrl+Shift (action: slow_alt_shift)</name>
-					<packageName></packageName>
-					<script>manager.actions.perform_action('slow_alt_shift')</script>
-					<command></command>
-					<keyCode>45</keyCode>
-					<keyModifier>637534208</keyModifier>
 				</Key>
 				<Key isActive="yes" isFolder="no">
 					<name>KP-+Alt (action: slow_n_prev)</name>
@@ -1896,7 +1880,7 @@ manager.misc.announce_variable('user mapper', manager.doors.use_mapper, true)</s
 				</Key>
 			</KeyGroup>
 			<Key isActive="yes" isFolder="no">
-				<name>Manager debugging</name>
+				<name>Diku debugging</name>
 				<packageName></packageName>
 				<script>manager.debug = not manager.debug
 db.debug_sql = manager.debug
