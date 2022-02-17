@@ -678,6 +678,8 @@ end</script>
     local change_stance = loadout.stance ~= '*'
     local need_wield = loadout.wield ~= '!'
     local need_sheath = prev and prev.sheath and prev.sheath ~= nil
+    
+    if need_sheath and loadout.wield == '!' then need_sheath = false end
   
     if prev and prev.name and prev.name ~= '' then
       if change_stance and loadout.stance == prev.stance then
@@ -693,6 +695,14 @@ end</script>
     if change_stance then manager.actions.interpret_command(loadout.stance) end
     if need_sheath then manager.actions.interpret_command(prev.sheath) end
     if need_wield then manager.actions.interpret_command(loadout.wield) end
+    
+    -- This makes sure we don't switch when going back to an existing stance
+    if loadout.stance == '*' then loadout.stance = prev.stance end
+    -- This makes sure we keep the setup when weapons dont change
+    if loadout.wield == '!' then
+      loadout.wield = prev.wield
+      loadout.sheath = prev.sheath
+    end
   end
   
   manager.loadouts.current = loadout
@@ -888,6 +898,8 @@ end</script>
   manager.loadouts.actions.each(function(row) current[row.name] = row.value end)
   
   manager.loadouts.actions.current = current
+  
+  if current.message then echo(f'# {current.message}\n') end
 end</script>
 						<eventHandlerList />
 					</Script>
@@ -1359,6 +1371,14 @@ end</script>
 					<command></command>
 					<keyCode>43</keyCode>
 					<keyModifier>671088640</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP+ +Ctrl+Alt (action: fast_alt_prev)</name>
+					<packageName></packageName>
+					<script>manager.actions.perform_action('fast_alt_prev')</script>
+					<command></command>
+					<keyCode>43</keyCode>
+					<keyModifier>738197504</keyModifier>
 				</Key>
 				<Key isActive="yes" isFolder="no">
 					<name>KP- (action: slow_n)</name>
