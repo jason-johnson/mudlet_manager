@@ -17,10 +17,9 @@
 			<colorTriggerBgColor>#000000</colorTriggerBgColor>
 			<regexCodeList />
 			<regexCodePropertyList />
-			<Trigger isActive="no" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
-				<name>Diku Keep</name>
-				<script>-- sysConnectionEvent
--- sysLoadEvent</script>
+			<TriggerGroup isActive="yes" isFolder="yes" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+				<name>Directions and Movement</name>
+				<script></script>
 				<triggerType>0</triggerType>
 				<conditonLineDelta>0</conditonLineDelta>
 				<mStayOpen>0</mStayOpen>
@@ -31,13 +30,50 @@
 				<mSoundFile></mSoundFile>
 				<colorTriggerFgColor>#000000</colorTriggerFgColor>
 				<colorTriggerBgColor>#000000</colorTriggerBgColor>
-				<regexCodeList>
-					<string>just a placeholder</string>
-				</regexCodeList>
-				<regexCodePropertyList>
-					<integer>0</integer>
-				</regexCodePropertyList>
-			</Trigger>
+				<regexCodeList />
+				<regexCodePropertyList />
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>leaves &lt;dir&gt;</name>
+					<script>local label = manager.diku.directions.decorate_dir(matches[3], 3)
+manager.misc.replaceCaptureGroup(label, 3)</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>^(.+) leaves (north|south|east|west|up|down)</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+				<Trigger isActive="yes" isFolder="no" isTempTrigger="no" isMultiline="no" isPerlSlashGOption="no" isColorizerTrigger="no" isFilterTrigger="no" isSoundTrigger="no" isColorTrigger="no" isColorTriggerFg="no" isColorTriggerBg="no">
+					<name>has arrived</name>
+					<script>manager.misc.replaceCaptureGroup("ARRIVED", 2, "yellow")</script>
+					<triggerType>0</triggerType>
+					<conditonLineDelta>0</conditonLineDelta>
+					<mStayOpen>0</mStayOpen>
+					<mCommand></mCommand>
+					<packageName></packageName>
+					<mFgColor>#ff0000</mFgColor>
+					<mBgColor>#ffff00</mBgColor>
+					<mSoundFile></mSoundFile>
+					<colorTriggerFgColor>#000000</colorTriggerFgColor>
+					<colorTriggerBgColor>#000000</colorTriggerBgColor>
+					<regexCodeList>
+						<string>has (arrived) from (the )?(north|south|east|west|above|below)\.$</string>
+					</regexCodeList>
+					<regexCodePropertyList>
+						<integer>1</integer>
+					</regexCodePropertyList>
+				</Trigger>
+			</TriggerGroup>
 		</TriggerGroup>
 	</TriggerPackage>
 	<TimerPackage />
@@ -49,11 +85,17 @@
 			<packageName></packageName>
 			<regex></regex>
 			<Alias isActive="yes" isFolder="no">
-				<name>diki keep</name>
-				<script></script>
+				<name>get all corpse (gac)</name>
+				<script>local corpse = "corpse"
+
+if matches[3] then
+	corpse = 	matches[3] .. "." .. corpse
+end
+
+send("get all " .. corpse)</script>
 				<command></command>
 				<packageName></packageName>
-				<regex></regex>
+				<regex>^\s*gac(\s+(\d+))?\s*$</regex>
 			</Alias>
 		</AliasGroup>
 	</AliasPackage>
@@ -70,12 +112,44 @@ end
 
 manager.diku = manager.diku or initialize_diku()</script>
 			<eventHandlerList />
-			<Script isActive="yes" isFolder="no">
-				<name>diku keep</name>
+			<ScriptGroup isActive="yes" isFolder="yes">
+				<name>Directions and Movement</name>
 				<packageName></packageName>
-				<script></script>
+				<script>function initialize_diku_directions()
+  local directions = {}
+
+  directions.markers = {
+    ["north"] = "^",
+    ["south"] = "v",
+    ["east"] = "&gt;",
+    ["west"] = "&lt;",
+    ["up"] = "+",
+    ["down"] = "x"
+  }
+
+  return directions
+end
+
+manager.diku.directions = manager.diku.directions or initialize_diku_directions()
+</script>
 				<eventHandlerList />
-			</Script>
+				<Script isActive="yes" isFolder="no">
+					<name>decorate_dir</name>
+					<packageName></packageName>
+					<script>function manager.diku.directions.decorate_dir(direction, marker_count)
+
+  local marker_char = manager.diku.directions.markers[direction]
+
+  local marker = marker_char
+  for index = 1, marker_count - 1 do
+    marker = marker .. marker_char
+  end
+
+  return marker .. " " .. string.upper(direction) .. " " .. marker
+end</script>
+					<eventHandlerList />
+				</Script>
+			</ScriptGroup>
 		</ScriptGroup>
 	</ScriptPackage>
 	<KeyPackage>
