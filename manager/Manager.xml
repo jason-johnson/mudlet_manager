@@ -1438,70 +1438,6 @@ end</script>
 				</Key>
 			</KeyGroup>
 			<KeyGroup isActive="yes" isFolder="yes">
-				<name>Directions</name>
-				<packageName></packageName>
-				<script></script>
-				<command></command>
-				<keyCode>-1</keyCode>
-				<keyModifier>0</keyModifier>
-				<Key isActive="yes" isFolder="no">
-					<name>KP8 (north)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>n</command>
-					<keyCode>56</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP2 (south)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>s</command>
-					<keyCode>50</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP6 (east)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>e</command>
-					<keyCode>54</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP4 (west)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>w</command>
-					<keyCode>52</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP9 (up)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>u</command>
-					<keyCode>57</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP3 (down)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>d</command>
-					<keyCode>51</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-				<Key isActive="yes" isFolder="no">
-					<name>KP0 (flee)</name>
-					<packageName></packageName>
-					<script></script>
-					<command>f</command>
-					<keyCode>48</keyCode>
-					<keyModifier>536870912</keyModifier>
-				</Key>
-			</KeyGroup>
-			<KeyGroup isActive="yes" isFolder="yes">
 				<name>Status</name>
 				<packageName></packageName>
 				<script></script>
@@ -1596,7 +1532,7 @@ end</script>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP2+Ctrl+Alt (rock door south)</name>
+						<name>KP2+Ctrl+Alt (special door south)</name>
 						<packageName></packageName>
 						<script>manager.doors.special_door("south")</script>
 						<command></command>
@@ -1652,7 +1588,7 @@ end</script>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP3+Ctrl+Alt (rock door down)</name>
+						<name>KP3+Ctrl+Alt (special door down)</name>
 						<packageName></packageName>
 						<script>manager.doors.special_door("down")</script>
 						<command></command>
@@ -1708,7 +1644,7 @@ end</script>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP4+Ctrl+Alt (rock door west)</name>
+						<name>KP4+Ctrl+Alt (special door west)</name>
 						<packageName></packageName>
 						<script>manager.doors.special_door("west")</script>
 						<command></command>
@@ -1764,7 +1700,7 @@ end</script>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP6+Ctrl+Alt (rock door east)</name>
+						<name>KP6+Ctrl+Alt (special door east)</name>
 						<packageName></packageName>
 						<script>manager.doors.special_door("east")</script>
 						<command></command>
@@ -1820,7 +1756,7 @@ end</script>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP8+Ctrl+Alt (rock door north)</name>
+						<name>KP8+Ctrl+Alt (special door north)</name>
 						<packageName></packageName>
 						<script>manager.doors.special_door("north")</script>
 						<command></command>
@@ -1876,7 +1812,7 @@ end</script>
 						<keyModifier>536870912</keyModifier>
 					</Key>
 					<Key isActive="yes" isFolder="no">
-						<name>KP9+Ctrl+Alt (rock door up)</name>
+						<name>KP9+Ctrl+Alt (special door up)</name>
 						<packageName></packageName>
 						<script>manager.doors.special_door("up")</script>
 						<command></command>

@@ -94,6 +94,70 @@ manager.diku = manager.diku or initialize_diku()</script>
 				<keyCode>33554431</keyCode>
 				<keyModifier>0</keyModifier>
 			</Key>
+			<KeyGroup isActive="yes" isFolder="yes">
+				<name>Directions</name>
+				<packageName></packageName>
+				<script></script>
+				<command></command>
+				<keyCode>-1</keyCode>
+				<keyModifier>0</keyModifier>
+				<Key isActive="yes" isFolder="no">
+					<name>KP8 (north)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>n</command>
+					<keyCode>56</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP2 (south)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>s</command>
+					<keyCode>50</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP6 (east)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>e</command>
+					<keyCode>54</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP4 (west)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>w</command>
+					<keyCode>52</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP9 (up)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>u</command>
+					<keyCode>57</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP3 (down)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>d</command>
+					<keyCode>51</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+				<Key isActive="yes" isFolder="no">
+					<name>KP0 (flee)</name>
+					<packageName></packageName>
+					<script></script>
+					<command>f</command>
+					<keyCode>48</keyCode>
+					<keyModifier>536870912</keyModifier>
+				</Key>
+			</KeyGroup>
 		</KeyGroup>
 	</KeyPackage>
 	<HelpPackage>
